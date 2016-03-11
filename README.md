@@ -27,9 +27,9 @@ INTRODUCTION
 VERSION
 =========
 	- Version of bma2x2 sensor driver is:
-		* bma2x2.c 		- V2.0.3
-		* bma2x2.h 		- V2.0.3
-		* bma2x2_support.c 	- V1.0.2
+		* bma2x2.c 		- V2.0.4
+		* bma2x2.h 		- V2.0.4
+		* bma2x2_support.c 	- V1.0.3
 
 INTEGRATION DETAILS
 =====================
@@ -66,5 +66,5 @@ SUPPORTED SENSOR INTERFACE
 
 COPYRIGHT
 ===========
-	- Copyright (C) 2011 - 2014 Bosch Sensortec GmbH
+	- Copyright (C) 2015 - 2016 Bosch Sensortec GmbH
 

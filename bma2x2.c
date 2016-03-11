@@ -1,10 +1,10 @@
 /*!
 ****************************************************************************
-* Copyright (C) 2011 - 2014 Bosch Sensortec GmbH
+* Copyright (C) 2015 - 2016 Bosch Sensortec GmbH
 *
 * bma2x2.c
-* Date: 2014/12/12
-* Revision: 2.0.3 $
+* Date: 2016/03/11
+* Revision: 2.0.4 $
 *
 * Usage: Sensor Driver for BMA2x2 sensor
 *
@@ -54,7 +54,7 @@
 #include "bma2x2.h"
 /*! user defined code to be added here ... */
 static struct bma2x2_t *p_bma2x2;
-/*! Based on Bit resolution v_value_u8 should be modified */
+/*! Based on Bit resolution value_u8 should be modified */
 u8 V_BMA2x2RESOLUTION_U8 = BMA2x2_14_RESOLUTION;
 
 /*!
@@ -63,9 +63,9 @@ u8 V_BMA2x2RESOLUTION_U8 = BMA2x2_14_RESOLUTION;
  *	the given register continuously
  *
  *
- *	@param v_addr_u8 -> Address of the register
- *	@param v_data_u8 -> The data from the register
- *	@param v_len_u32 -> no of bytes to read
+ *	@param addr_u8 -> Address of the register
+ *	@param data_u8 -> The data from the register
+ *	@param len_u32 -> no of bytes to read
  *
  *
  *	@return results of bus communication function
@@ -74,19 +74,20 @@ u8 V_BMA2x2RESOLUTION_U8 = BMA2x2_14_RESOLUTION;
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_burst_read(u8 v_addr_u8,
-u8 *v_data_u8, u32 v_len_u32)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_burst_read(u8 addr_u8,
+u8 *data_u8, u32 len_u32)
 {
 	/* Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
 			/* Read the data from the register*/
 			com_rslt = p_bma2x2->BMA2x2_BURST_READ_FUNC
-			(p_bma2x2->dev_addr, v_addr_u8, v_data_u8, v_len_u32);
+			(p_bma2x2->dev_addr, addr_u8, data_u8, len_u32);
 		}
 	return com_rslt;
 }
@@ -118,20 +119,20 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_init(struct bma2x2_t *bma2x2)
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
-	u8 v_config_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
+	u8 config_data_u8 = BMA2x2_INIT_VALUE;
 	/* assign bma2x2 ptr */
 	p_bma2x2 = bma2x2;
 	/* read Chip Id */
 	com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 	(p_bma2x2->dev_addr,
-	BMA2x2_CHIP_ID__REG, &v_data_u8, C_BMA2x2_ONE_U8X);
-	p_bma2x2->chip_id = v_data_u8;    /* get bit slice */
+	BMA2x2_CHIP_ID_REG, &data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+	p_bma2x2->chip_id = data_u8;    /* get bit slice */
 	/* read the fifo config register and update
 	the value to the fifo_config*/
 	com_rslt += bma2x2_read_reg(BMA2x2_FIFO_MODE_REG,
-	&v_config_data_u8, C_BMA2x2_ONE_U8X);
-	p_bma2x2->fifo_config = v_config_data_u8;
+	&config_data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+	p_bma2x2->fifo_config = config_data_u8;
 	return com_rslt;
 }
 /*!
@@ -140,9 +141,9 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_init(struct bma2x2_t *bma2x2)
  *	the data is written in the corresponding register address
  *
  *
- *	@param v_adr_u8  -> Address of the register
- *	@param v_data_u8 -> The data to the register
- *	@param v_len_u8 -> no of bytes to read
+ *	@param adr_u8  -> Address of the register
+ *	@param data_u8 -> The data to the register
+ *	@param len_u8 -> no of bytes to read
  *
  *
  *
@@ -152,19 +153,20 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_init(struct bma2x2_t *bma2x2)
  *
  *
 */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_write_reg(u8 v_adr_u8,
-u8 *v_data_u8, u8 v_len_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_write_reg(u8 adr_u8,
+u8 *data_u8, u8 len_u8)
 {
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
 		/* Write the data to the register*/
 		com_rslt = p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-		(p_bma2x2->dev_addr, v_adr_u8, v_data_u8, v_len_u8);
+		(p_bma2x2->dev_addr, adr_u8, data_u8, len_u8);
 	}
 	return com_rslt;
 }
@@ -173,9 +175,9 @@ u8 *v_data_u8, u8 v_len_u8)
  *           the given register address
  *
  *
- *	@param v_adr_u8 -> Address of the register
- *	@param v_data_u8 -> The data from the register
- *	@param v_len_u8 -> no of bytes to read
+ *	@param adr_u8 -> Address of the register
+ *	@param data_u8 -> The data from the register
+ *	@param len_u8 -> no of bytes to read
  *
  *
  *
@@ -185,19 +187,20 @@ u8 *v_data_u8, u8 v_len_u8)
  *
  *
 */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_read_reg(u8 v_adr_u8,
-u8 *v_data_u8, u8 v_len_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_read_reg(u8 adr_u8,
+u8 *data_u8, u8 len_u8)
 {
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
 			/*Read the data from the register*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
-			(p_bma2x2->dev_addr, v_adr_u8, v_data_u8, v_len_u8);
+			(p_bma2x2->dev_addr, adr_u8, data_u8, len_u8);
 		}
 	return com_rslt;
 }
@@ -207,7 +210,7 @@ u8 *v_data_u8, u8 v_len_u8)
  *	from location 02h and 03h
  *
  *
- *  @param   v_accel_x_s16 : pointer holding the data of accel X
+ *  @param   accel_x_s16 : pointer holding the data of accel X
  *		       value       |   resolution
  *       ----------------- | --------------
  *              0          | BMA2x2_12_RESOLUTION
@@ -221,17 +224,17 @@ u8 *v_data_u8, u8 v_len_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_read_accel_x(s16 *v_accel_x_s16)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_read_accel_x(s16 *accel_x_s16)
 {
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
 	/* Array holding the accel x value
-	v_data_u8[0] - x->LSB
-	v_data_u8[MSB_ONE] - x->MSB
+	data_u8[0] - x->LSB
+	data_u8[1] - x->MSB
 	*/
-	u8	v_data_u8[ARRAY_SIZE_TWO] = {
-	C_BMA2x2_ZERO_U8X, C_BMA2x2_ZERO_U8X};
+	u8	data_u8[BMA2x2_ACCEL_DATA_SIZE] = {
+	BMA2x2_INIT_VALUE, BMA2x2_INIT_VALUE};
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
@@ -241,31 +244,43 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_read_accel_x(s16 *v_accel_x_s16)
 		case BMA2x2_12_RESOLUTION:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ACCEL_X12_LSB__REG, v_data_u8, C_BMA2x2_TWO_U8X);
-			*v_accel_x_s16 = (s16)((((s32)((s8)v_data_u8[MSB_ONE]))
-			<< C_BMA2x2_EIGHT_U8X) |
-			(v_data_u8[LSB_ZERO] & RESOLUTION_12_MASK));
-			*v_accel_x_s16 = *v_accel_x_s16 >> C_BMA2x2_FOUR_U8X;
+			BMA2x2_ACCEL_X12_LSB_REG, data_u8,
+			BMA2x2_LSB_MSB_READ_LENGTH);
+			*accel_x_s16 = (s16)((((s32)((s8)
+			data_u8[BMA2x2_SENSOR_DATA_ACCEL_MSB]))
+			<< BMA2x2_SHIFT_EIGHT_BITS) |
+			(data_u8[BMA2x2_SENSOR_DATA_ACCEL_LSB] &
+			BMA2x2_RESOLUTION_12_MASK));
+			*accel_x_s16 = *accel_x_s16 >>
+			BMA2x2_SHIFT_FOUR_BITS;
 		break;
 		/* This case used for the resolution bit 10*/
 		case BMA2x2_10_RESOLUTION:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ACCEL_X10_LSB__REG, v_data_u8, C_BMA2x2_TWO_U8X);
-			*v_accel_x_s16 = (s16)((((s32)((s8)v_data_u8[MSB_ONE]))
-			<< C_BMA2x2_EIGHT_U8X) |
-			(v_data_u8[LSB_ZERO] & RESOLUTION_10_MASK));
-			*v_accel_x_s16 = *v_accel_x_s16 >> C_BMA2x2_SIX_U8X;
+			BMA2x2_ACCEL_X10_LSB_REG, data_u8,
+			BMA2x2_LSB_MSB_READ_LENGTH);
+			*accel_x_s16 = (s16)((((s32)((s8)
+			data_u8[BMA2x2_SENSOR_DATA_ACCEL_MSB]))
+			<< BMA2x2_SHIFT_EIGHT_BITS) |
+			(data_u8[BMA2x2_SENSOR_DATA_ACCEL_LSB] &
+			BMA2x2_RESOLUTION_10_MASK));
+			*accel_x_s16 = *accel_x_s16 >>
+			BMA2x2_SHIFT_SIX_BITS;
 		break;
 		/* This case used for the resolution bit 14*/
 		case BMA2x2_14_RESOLUTION:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ACCEL_X14_LSB__REG, v_data_u8, C_BMA2x2_TWO_U8X);
-			*v_accel_x_s16 = (s16)((((s32)((s8)v_data_u8[MSB_ONE]))
-			<< C_BMA2x2_EIGHT_U8X) |
-			(v_data_u8[LSB_ZERO] & RESOLUTION_14_MASK));
-			*v_accel_x_s16 = *v_accel_x_s16 >> C_BMA2x2_TWO_U8X;
+			BMA2x2_ACCEL_X14_LSB_REG, data_u8,
+			BMA2x2_LSB_MSB_READ_LENGTH);
+			*accel_x_s16 = (s16)((((s32)((s8)
+			data_u8[BMA2x2_SENSOR_DATA_ACCEL_MSB]))
+			<< BMA2x2_SHIFT_EIGHT_BITS) |
+			(data_u8[BMA2x2_SENSOR_DATA_ACCEL_LSB] &
+			BMA2x2_RESOLUTION_14_MASK));
+			*accel_x_s16 = *accel_x_s16 >>
+			BMA2x2_SHIFT_TWO_BITS;
 		break;
 		default:
 		break;
@@ -279,7 +294,7 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_read_accel_x(s16 *v_accel_x_s16)
  *	from location 02h and 03h bit resolution support 8bit
  *
  *
- *  @param   v_accel_x_s8 : pointer holding the data of accel X
+ *  @param   accel_x_s8 : pointer holding the data of accel X
  *
  *
  *
@@ -289,13 +304,14 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_read_accel_x(s16 *v_accel_x_s16)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_read_accel_elight_resolution_x(
-s8 *v_accel_x_s8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_read_accel_eight_resolution_x(
+s8 *accel_x_s8)
 {
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
-	u8	data = C_BMA2x2_ZERO_U8X;
+	u8	data = BMA2x2_INIT_VALUE;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
@@ -303,8 +319,9 @@ s8 *v_accel_x_s8)
 			/* Read the sensor X data*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_X_AXIS_MSB_REG, &data, C_BMA2x2_ONE_U8X);
-			*v_accel_x_s8 = BMA2x2_GET_BITSLICE(data,
+			BMA2x2_X_AXIS_MSB_ADDR, &data,
+			BMA2x2_GEN_READ_WRITE_LENGTH);
+			*accel_x_s8 = BMA2x2_GET_BITSLICE(data,
 			BMA2x2_ACCEL_X_MSB);
 		}
 	return com_rslt;
@@ -314,7 +331,7 @@ s8 *v_accel_x_s8)
  *	This API reads acceleration data Y values
  *	from location 04h and 05h
  *
- *  @param   v_accel_y_s16 : pointer holding the data of accel Y
+ *  @param   accel_y_s16 : pointer holding the data of accel Y
  *		       value       |   resolution
  *       ----------------- | --------------
  *              0          | BMA2x2_12_RESOLUTION
@@ -328,16 +345,18 @@ s8 *v_accel_x_s8)
  *
  *
 */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_read_accel_y(s16 *v_accel_y_s16)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_read_accel_y(s16 *accel_y_s16)
 {
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
 	/* Array holding the accel y value
-	v_data_u8[LSB_ZERO] - y->LSB
-	v_data_u8[MSB_ONE] - y->MSB
+	data_u8[0] - y->LSB
+	data_u8[1] - y->MSB
 	*/
-	u8 v_data_u8[ARRAY_SIZE_TWO] = {C_BMA2x2_ZERO_U8X, C_BMA2x2_ZERO_U8X};
+	u8 data_u8[BMA2x2_ACCEL_DATA_SIZE] = {BMA2x2_INIT_VALUE,
+	BMA2x2_INIT_VALUE};
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
@@ -347,31 +366,43 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_read_accel_y(s16 *v_accel_y_s16)
 		case BMA2x2_12_RESOLUTION:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ACCEL_Y12_LSB__REG, v_data_u8, C_BMA2x2_TWO_U8X);
-			*v_accel_y_s16 = (s16)((((s32)((s8)v_data_u8[MSB_ONE]))
-			<< C_BMA2x2_EIGHT_U8X) |
-			(v_data_u8[LSB_ZERO] & BMA2x2_12_BIT_SHIFT));
-			*v_accel_y_s16 = *v_accel_y_s16 >> C_BMA2x2_FOUR_U8X;
+			BMA2x2_ACCEL_Y12_LSB_REG, data_u8,
+			BMA2x2_LSB_MSB_READ_LENGTH);
+			*accel_y_s16 = (s16)((((s32)((s8)
+			data_u8[BMA2x2_SENSOR_DATA_ACCEL_MSB]))
+			<< BMA2x2_SHIFT_EIGHT_BITS) |
+			(data_u8[BMA2x2_SENSOR_DATA_ACCEL_LSB] &
+			BMA2x2_12_BIT_SHIFT));
+			*accel_y_s16 = *accel_y_s16 >>
+			BMA2x2_SHIFT_FOUR_BITS;
 		break;
 		/* This case used for the resolution bit 10*/
 		case BMA2x2_10_RESOLUTION:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ACCEL_Y10_LSB__REG, v_data_u8, C_BMA2x2_TWO_U8X);
-			*v_accel_y_s16 = (s16)((((s32)((s8)v_data_u8[MSB_ONE]))
-			<< C_BMA2x2_EIGHT_U8X) |
-			(v_data_u8[LSB_ZERO] & BMA2x2_10_BIT_SHIFT));
-			*v_accel_y_s16 = *v_accel_y_s16 >> C_BMA2x2_SIX_U8X;
+			BMA2x2_ACCEL_Y10_LSB_REG, data_u8,
+			BMA2x2_LSB_MSB_READ_LENGTH);
+			*accel_y_s16 = (s16)((((s32)((s8)
+			data_u8[BMA2x2_SENSOR_DATA_ACCEL_MSB]))
+			<< BMA2x2_SHIFT_EIGHT_BITS) |
+			(data_u8[BMA2x2_SENSOR_DATA_ACCEL_LSB] &
+			BMA2x2_10_BIT_SHIFT));
+			*accel_y_s16 = *accel_y_s16 >>
+			BMA2x2_SHIFT_SIX_BITS;
 		break;
 		/* This case used for the resolution bit 14*/
 		case BMA2x2_14_RESOLUTION:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ACCEL_Y14_LSB__REG, v_data_u8, C_BMA2x2_TWO_U8X);
-			*v_accel_y_s16 = (s16)((((s32)((s8)v_data_u8[MSB_ONE]))
-			<< C_BMA2x2_EIGHT_U8X) |
-			(v_data_u8[LSB_ZERO] & BMA2x2_14_BIT_SHIFT));
-			*v_accel_y_s16 = *v_accel_y_s16 >> C_BMA2x2_TWO_U8X;
+			BMA2x2_ACCEL_Y14_LSB_REG, data_u8,
+			BMA2x2_LSB_MSB_READ_LENGTH);
+			*accel_y_s16 = (s16)((((s32)((s8)
+			data_u8[BMA2x2_SENSOR_DATA_ACCEL_MSB]))
+			<< BMA2x2_SHIFT_EIGHT_BITS) |
+			(data_u8[BMA2x2_SENSOR_DATA_ACCEL_LSB] &
+			BMA2x2_14_BIT_SHIFT));
+			*accel_y_s16 = *accel_y_s16 >>
+			BMA2x2_SHIFT_TWO_BITS;
 		break;
 		default:
 		break;
@@ -386,7 +417,7 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_read_accel_y(s16 *v_accel_y_s16)
  *
  *
  *
- *  @param v_accel_y_s8   The data of y
+ *  @param accel_y_s8   The data of y
  *
  *
  *
@@ -396,21 +427,23 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_read_accel_y(s16 *v_accel_y_s16)
  *
  *
 */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_read_accel_elight_resolution_y(
-s8 *v_accel_y_s8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_read_accel_eight_resolution_y(
+s8 *accel_y_s8)
 {
 		/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
-	u8	data = C_BMA2x2_ZERO_U8X;
+	u8	data = BMA2x2_INIT_VALUE;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_Y_AXIS_MSB_REG, &data, C_BMA2x2_ONE_U8X);
-			*v_accel_y_s8 = BMA2x2_GET_BITSLICE(data,
+			BMA2x2_Y_AXIS_MSB_ADDR, &data,
+			BMA2x2_GEN_READ_WRITE_LENGTH);
+			*accel_y_s8 = BMA2x2_GET_BITSLICE(data,
 			BMA2x2_ACCEL_Y_MSB);
 		}
 	return com_rslt;
@@ -420,7 +453,7 @@ s8 *v_accel_y_s8)
  *                          from location 06h and 07h
  *
  *
- *  @param   v_accel_z_s16 : pointer holding the data of accel Z
+ *  @param   accel_z_s16 : pointer holding the data of accel Z
  *		       value       |   resolution
  *       ----------------- | --------------
  *              0          | BMA2x2_12_RESOLUTION
@@ -434,16 +467,18 @@ s8 *v_accel_y_s8)
  *
  *
 */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_read_accel_z(s16 *v_accel_z_s16)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_read_accel_z(s16 *accel_z_s16)
 {
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
 	/* Array holding the accel z value
-	v_data_u8[LSB_ZERO] - z->LSB
-	v_data_u8[MSB_ONE] - z->MSB
+	data_u8[0] - z->LSB
+	data_u8[1] - z->MSB
 	*/
-	u8 v_data_u8[ARRAY_SIZE_TWO] = {C_BMA2x2_ZERO_U8X, C_BMA2x2_ZERO_U8X};
+	u8 data_u8[BMA2x2_ACCEL_DATA_SIZE] = {BMA2x2_INIT_VALUE,
+	BMA2x2_INIT_VALUE};
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
@@ -453,31 +488,43 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_read_accel_z(s16 *v_accel_z_s16)
 			/* This case used for the resolution bit 12*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ACCEL_Z12_LSB__REG, v_data_u8, C_BMA2x2_TWO_U8X);
-			*v_accel_z_s16 = (s16)((((s32)((s8)v_data_u8[MSB_ONE]))
-			<< C_BMA2x2_EIGHT_U8X) |
-			(v_data_u8[LSB_ZERO] & BMA2x2_12_BIT_SHIFT));
-			*v_accel_z_s16 = *v_accel_z_s16 >> C_BMA2x2_FOUR_U8X;
+			BMA2x2_ACCEL_Z12_LSB_REG, data_u8,
+			BMA2x2_LSB_MSB_READ_LENGTH);
+			*accel_z_s16 = (s16)((((s32)((s8)
+			data_u8[BMA2x2_SENSOR_DATA_ACCEL_MSB]))
+			<< BMA2x2_SHIFT_EIGHT_BITS) |
+			(data_u8[BMA2x2_SENSOR_DATA_ACCEL_LSB]
+			& BMA2x2_12_BIT_SHIFT));
+			*accel_z_s16 = *accel_z_s16 >>
+			BMA2x2_SHIFT_FOUR_BITS;
 		break;
 		/* This case used for the resolution bit 10*/
 		case BMA2x2_10_RESOLUTION:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ACCEL_Z10_LSB__REG, v_data_u8, C_BMA2x2_TWO_U8X);
-			*v_accel_z_s16 = (s16)((((s32)((s8)v_data_u8[MSB_ONE]))
-			<< C_BMA2x2_EIGHT_U8X) |
-			(v_data_u8[LSB_ZERO] & BMA2x2_10_BIT_SHIFT));
-			*v_accel_z_s16 = *v_accel_z_s16 >> C_BMA2x2_SIX_U8X;
+			BMA2x2_ACCEL_Z10_LSB_REG, data_u8,
+			BMA2x2_LSB_MSB_READ_LENGTH);
+			*accel_z_s16 = (s16)((((s32)((s8)
+			data_u8[BMA2x2_SENSOR_DATA_ACCEL_MSB]))
+			<< BMA2x2_SHIFT_EIGHT_BITS) |
+			(data_u8[BMA2x2_SENSOR_DATA_ACCEL_LSB]
+			& BMA2x2_10_BIT_SHIFT));
+			*accel_z_s16 = *accel_z_s16 >>
+			BMA2x2_SHIFT_SIX_BITS;
 		break;
 		/* This case used for the resolution bit 14*/
 		case BMA2x2_14_RESOLUTION:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ACCEL_Z14_LSB__REG, v_data_u8, C_BMA2x2_TWO_U8X);
-			*v_accel_z_s16 = (s16)((((s32)((s8)v_data_u8[MSB_ONE]))
-			<< C_BMA2x2_EIGHT_U8X) |
-			(v_data_u8[LSB_ZERO] & BMA2x2_14_BIT_SHIFT));
-			*v_accel_z_s16 = *v_accel_z_s16 >> C_BMA2x2_TWO_U8X;
+			BMA2x2_ACCEL_Z14_LSB_REG, data_u8,
+			BMA2x2_LSB_MSB_READ_LENGTH);
+			*accel_z_s16 = (s16)((((s32)((s8)
+			data_u8[BMA2x2_SENSOR_DATA_ACCEL_MSB]))
+			<< BMA2x2_SHIFT_EIGHT_BITS) |
+			(data_u8[BMA2x2_SENSOR_DATA_ACCEL_LSB]
+			& BMA2x2_14_BIT_SHIFT));
+			*accel_z_s16 = *accel_z_s16 >>
+			BMA2x2_SHIFT_TWO_BITS;
 		break;
 		default:
 		break;
@@ -493,7 +540,7 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_read_accel_z(s16 *v_accel_z_s16)
  *
  *
  *
- *  \@aram  v_accel_z_s8 : the data of z
+ *  \@aram  accel_z_s8 : the data of z
  *
  *
  *	@return results of bus communication function
@@ -502,21 +549,23 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_read_accel_z(s16 *v_accel_z_s16)
  *
  *
 */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_read_accel_elight_resolution_z(
-s8 *v_accel_z_s8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_read_accel_eight_resolution_z(
+s8 *accel_z_s8)
 {
 		/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
-	u8	data = C_BMA2x2_ZERO_U8X;
+	u8	data = BMA2x2_INIT_VALUE;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_Z_AXIS_MSB_REG, &data, C_BMA2x2_ONE_U8X);
-			*v_accel_z_s8 = BMA2x2_GET_BITSLICE(data,
+			BMA2x2_Z_AXIS_MSB_ADDR, &data,
+			BMA2x2_GEN_READ_WRITE_LENGTH);
+			*accel_z_s8 = BMA2x2_GET_BITSLICE(data,
 			BMA2x2_ACCEL_Z_MSB);
 		}
 	return com_rslt;
@@ -545,17 +594,18 @@ struct bma2x2_accel_data *accel)
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
 	/* Array holding the accel xyz value
-	v_data_u8[LSB_ZERO] - x->LSB
-	v_data_u8[MSB_ONE] - x->MSB
-	v_data_u8[2] - y->MSB
-	v_data_u8[3] - y->MSB
-	v_data_u8[4] - z->MSB
-	v_data_u8[5] - z->MSB
+	data_u8[0] - x->LSB
+	data_u8[1] - x->MSB
+	data_u8[2] - y->MSB
+	data_u8[3] - y->MSB
+	data_u8[4] - z->MSB
+	data_u8[5] - z->MSB
 	*/
-	u8 v_data_u8[ARRAY_SIZE_SIX] = {
-	C_BMA2x2_ZERO_U8X, C_BMA2x2_ZERO_U8X,
-	C_BMA2x2_ZERO_U8X, C_BMA2x2_ZERO_U8X,
-	C_BMA2x2_ZERO_U8X, C_BMA2x2_ZERO_U8X};
+	u8 data_u8[BMA2x2_ACCEL_XYZ_DATA_SIZE] = {
+	BMA2x2_INIT_VALUE, BMA2x2_INIT_VALUE,
+	BMA2x2_INIT_VALUE, BMA2x2_INIT_VALUE,
+	BMA2x2_INIT_VALUE, BMA2x2_INIT_VALUE};
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
@@ -564,73 +614,91 @@ struct bma2x2_accel_data *accel)
 		/* This case used for the resolution bit 12*/
 		case BMA2x2_12_RESOLUTION:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
-			(p_bma2x2->dev_addr, BMA2x2_ACCEL_X12_LSB__REG,
-			v_data_u8, C_BMA2x2_SIX_U8X);
-			/* read the x v_data_u8*/
-			accel->x = (s16)((((s32)((s8)v_data_u8[MSB_ONE]))
-			<< C_BMA2x2_EIGHT_U8X) |
-			(v_data_u8[LSB_ZERO] & BMA2x2_12_BIT_SHIFT));
-			accel->x = accel->x >> C_BMA2x2_FOUR_U8X;
+			(p_bma2x2->dev_addr, BMA2x2_ACCEL_X12_LSB_REG,
+			data_u8, BMA2x2_SHIFT_SIX_BITS);
+			/* read the x data_u8*/
+			accel->x = (s16)((((s32)((s8)
+			data_u8[BMA2x2_SENSOR_DATA_XYZ_X_MSB]))
+			<< BMA2x2_SHIFT_EIGHT_BITS) |
+			(data_u8[BMA2x2_SENSOR_DATA_XYZ_X_LSB] &
+			BMA2x2_12_BIT_SHIFT));
+			accel->x = accel->x >> BMA2x2_SHIFT_FOUR_BITS;
 
-			/* read the y v_data_u8*/
-			accel->y = (s16)((((s32)((s8)v_data_u8[MSB_THREE]))
-			<< C_BMA2x2_EIGHT_U8X) |
-			(v_data_u8[LSB_TWO] & BMA2x2_12_BIT_SHIFT));
-			accel->y = accel->y >> C_BMA2x2_FOUR_U8X;
+			/* read the y data_u8*/
+			accel->y = (s16)((((s32)((s8)
+			data_u8[BMA2x2_SENSOR_DATA_XYZ_Y_MSB]))
+			<< BMA2x2_SHIFT_EIGHT_BITS) |
+			(data_u8[BMA2x2_SENSOR_DATA_XYZ_Y_LSB] &
+			BMA2x2_12_BIT_SHIFT));
+			accel->y = accel->y >> BMA2x2_SHIFT_FOUR_BITS;
 
-			/* read the z v_data_u8*/
-			accel->z = (s16)((((s32)((s8)v_data_u8[MSB_FIVE]))
-			<< C_BMA2x2_EIGHT_U8X) |
-			(v_data_u8[LSB_FOUR] & BMA2x2_12_BIT_SHIFT));
-			accel->z = accel->z >> C_BMA2x2_FOUR_U8X;
+			/* read the z data_u8*/
+			accel->z = (s16)((((s32)((s8)
+			data_u8[BMA2x2_SENSOR_DATA_XYZ_Z_MSB]))
+			<< BMA2x2_SHIFT_EIGHT_BITS) |
+			(data_u8[BMA2x2_SENSOR_DATA_XYZ_Z_LSB] &
+			BMA2x2_12_BIT_SHIFT));
+			accel->z = accel->z >> BMA2x2_SHIFT_FOUR_BITS;
 
 		break;
 		case BMA2x2_10_RESOLUTION:
 		/* This case used for the resolution bit 10*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
-			(p_bma2x2->dev_addr, BMA2x2_ACCEL_X10_LSB__REG,
-			v_data_u8, C_BMA2x2_SIX_U8X);
-			/* read the x v_data_u8*/
-			accel->x = (s16)((((s32)((s8)v_data_u8[MSB_ONE]))
-			<< C_BMA2x2_EIGHT_U8X) |
-			(v_data_u8[LSB_ZERO] & BMA2x2_10_BIT_SHIFT));
-			accel->x = accel->x >> C_BMA2x2_SIX_U8X;
+			(p_bma2x2->dev_addr, BMA2x2_ACCEL_X10_LSB_REG,
+			data_u8, BMA2x2_SHIFT_SIX_BITS);
+			/* read the x data_u8*/
+			accel->x = (s16)((((s32)((s8)
+			data_u8[BMA2x2_SENSOR_DATA_XYZ_X_MSB]))
+			<< BMA2x2_SHIFT_EIGHT_BITS) |
+			(data_u8[BMA2x2_SENSOR_DATA_XYZ_X_LSB] &
+			BMA2x2_10_BIT_SHIFT));
+			accel->x = accel->x >> BMA2x2_SHIFT_SIX_BITS;
 
-			/* read the y v_data_u8*/
-			accel->y = (s16)((((s32)((s8)v_data_u8[MSB_THREE]))
-			<< C_BMA2x2_EIGHT_U8X) |
-			(v_data_u8[LSB_TWO] & BMA2x2_10_BIT_SHIFT));
-			accel->y = accel->y >> C_BMA2x2_SIX_U8X;
+			/* read the y data_u8*/
+			accel->y = (s16)((((s32)((s8)
+			data_u8[BMA2x2_SENSOR_DATA_XYZ_Y_MSB]))
+			<< BMA2x2_SHIFT_EIGHT_BITS) |
+			(data_u8[BMA2x2_SENSOR_DATA_XYZ_Y_LSB] &
+			BMA2x2_10_BIT_SHIFT));
+			accel->y = accel->y >> BMA2x2_SHIFT_SIX_BITS;
 
-			/* read the z v_data_u8*/
-			accel->z = (s16)((((s32)((s8)v_data_u8[MSB_FIVE]))
-			<< C_BMA2x2_EIGHT_U8X) |
-			(v_data_u8[LSB_FOUR] & BMA2x2_10_BIT_SHIFT));
-			accel->z = accel->z >> C_BMA2x2_SIX_U8X;
+			/* read the z data_u8*/
+			accel->z = (s16)((((s32)((s8)
+			data_u8[BMA2x2_SENSOR_DATA_XYZ_Z_MSB]))
+			<< BMA2x2_SHIFT_EIGHT_BITS) |
+			(data_u8[BMA2x2_SENSOR_DATA_XYZ_Z_LSB]
+			& BMA2x2_10_BIT_SHIFT));
+			accel->z = accel->z >> BMA2x2_SHIFT_SIX_BITS;
 		break;
 		/* This case used for the resolution bit 14*/
 		case BMA2x2_14_RESOLUTION:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
-			(p_bma2x2->dev_addr, BMA2x2_ACCEL_X14_LSB__REG,
-			v_data_u8, C_BMA2x2_SIX_U8X);
+			(p_bma2x2->dev_addr, BMA2x2_ACCEL_X14_LSB_REG,
+			data_u8, BMA2x2_SHIFT_SIX_BITS);
 
-			/* read the x v_data_u8*/
-			accel->x = (s16)((((s32)((s8)v_data_u8[MSB_ONE]))
-			<< C_BMA2x2_EIGHT_U8X) |
-			(v_data_u8[LSB_ZERO] & BMA2x2_14_BIT_SHIFT));
-			accel->x = accel->x >> C_BMA2x2_TWO_U8X;
+			/* read the x data_u8*/
+			accel->x = (s16)((((s32)((s8)
+			data_u8[BMA2x2_SENSOR_DATA_XYZ_X_MSB]))<<
+			BMA2x2_SHIFT_EIGHT_BITS) |
+			(data_u8[BMA2x2_SENSOR_DATA_XYZ_X_LSB]
+			& BMA2x2_14_BIT_SHIFT));
+			accel->x = accel->x >> BMA2x2_SHIFT_TWO_BITS;
 
-			/* read the y v_data_u8*/
-			accel->y = (s16)((((s32)((s8)v_data_u8[MSB_THREE]))
-			<< C_BMA2x2_EIGHT_U8X) |
-			(v_data_u8[LSB_TWO] & BMA2x2_14_BIT_SHIFT));
-			accel->y = accel->y >> C_BMA2x2_TWO_U8X;
+			/* read the y data_u8*/
+			accel->y = (s16)((((s32)((s8)
+			data_u8[BMA2x2_SENSOR_DATA_XYZ_Y_MSB]))<<
+			BMA2x2_SHIFT_EIGHT_BITS) |
+			(data_u8[BMA2x2_SENSOR_DATA_XYZ_Y_LSB]
+			& BMA2x2_14_BIT_SHIFT));
+			accel->y = accel->y >> BMA2x2_SHIFT_TWO_BITS;
 
-			/* read the z v_data_u8*/
-			accel->z = (s16)((((s32)((s8)v_data_u8[MSB_FIVE]))
-			<< C_BMA2x2_EIGHT_U8X) |
-			(v_data_u8[LSB_FOUR] & BMA2x2_14_BIT_SHIFT));
-			accel->z = accel->z >> C_BMA2x2_TWO_U8X;
+			/* read the z data_u8*/
+			accel->z = (s16)((((s32)((s8)
+			data_u8[BMA2x2_SENSOR_DATA_XYZ_Z_MSB]))<<
+			BMA2x2_SHIFT_EIGHT_BITS) |
+			(data_u8[BMA2x2_SENSOR_DATA_XYZ_Z_LSB]
+			& BMA2x2_14_BIT_SHIFT));
+			accel->z = accel->z >> BMA2x2_SHIFT_TWO_BITS;
 		break;
 		default:
 		break;
@@ -662,27 +730,31 @@ struct bma2x2_accel_eight_resolution *accel)
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
-	u8	v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8	data_u8 = BMA2x2_INIT_VALUE;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
 		com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 		(p_bma2x2->dev_addr,
-		BMA2x2_X_AXIS_MSB_REG, &v_data_u8, C_BMA2x2_ONE_U8X);
-		accel->x = BMA2x2_GET_BITSLICE(v_data_u8,
+		BMA2x2_X_AXIS_MSB_ADDR, &data_u8,
+		BMA2x2_GEN_READ_WRITE_LENGTH);
+		accel->x = BMA2x2_GET_BITSLICE(data_u8,
 		BMA2x2_ACCEL_X_MSB);
 
 		com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 		(p_bma2x2->dev_addr,
-		BMA2x2_Y_AXIS_MSB_REG, &v_data_u8, C_BMA2x2_ONE_U8X);
-		accel->y = BMA2x2_GET_BITSLICE(v_data_u8,
+		BMA2x2_Y_AXIS_MSB_ADDR, &data_u8,
+		BMA2x2_GEN_READ_WRITE_LENGTH);
+		accel->y = BMA2x2_GET_BITSLICE(data_u8,
 		BMA2x2_ACCEL_Y_MSB);
 
 		com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 		(p_bma2x2->dev_addr,
-		BMA2x2_Z_AXIS_MSB_REG, &v_data_u8, C_BMA2x2_ONE_U8X);
-		accel->z = BMA2x2_GET_BITSLICE(v_data_u8,
+		BMA2x2_Z_AXIS_MSB_ADDR, &data_u8,
+		BMA2x2_GEN_READ_WRITE_LENGTH);
+		accel->z = BMA2x2_GET_BITSLICE(data_u8,
 		BMA2x2_ACCEL_Z_MSB);
 		}
 	return com_rslt;
@@ -692,7 +764,7 @@ struct bma2x2_accel_eight_resolution *accel)
  *	slope-sign, slope-first-xyz status register byte
  *	from location 0Bh
  *
- *   @param v_stat_tap_u8 : The status of tap and slope
+ *   @param stat_tap_u8 : The status of tap and slope
  *
  *
  *
@@ -703,19 +775,20 @@ struct bma2x2_accel_eight_resolution *accel)
  *
 */
 BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_intr_tap_stat(
-u8 *v_stat_tap_u8)
+u8 *stat_tap_u8)
 {
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
 			/* Read the interrupt status register 0x0B*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
-			(p_bma2x2->dev_addr, BMA2x2_STAT_TAP_SLOPE_REG,
-			v_stat_tap_u8, C_BMA2x2_ONE_U8X);
+			(p_bma2x2->dev_addr, BMA2x2_STAT_TAP_SLOPE_ADDR,
+			stat_tap_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		}
 	return com_rslt;
 }
@@ -724,7 +797,7 @@ u8 *v_stat_tap_u8)
  *	status register byte from location 0Ch
  *
  *
- *  @param v_stat_orient_u8 : The status of orient and high
+ *  @param stat_orient_u8 : The status of orient and high
  *
  *
  *
@@ -735,19 +808,20 @@ u8 *v_stat_tap_u8)
  *
  */
 BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_intr_orient_stat(
-u8 *v_stat_orient_u8)
+u8 *stat_orient_u8)
 {
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
 			/* Read the interrupt status register 0x0C*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
-			(p_bma2x2->dev_addr, BMA2x2_STAT_ORIENT_HIGH_REG,
-			v_stat_orient_u8, C_BMA2x2_ONE_U8X);
+			(p_bma2x2->dev_addr, BMA2x2_STAT_ORIENT_HIGH_ADDR,
+			stat_orient_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		}
 	return com_rslt;
 }
@@ -755,7 +829,7 @@ u8 *v_stat_orient_u8)
  *	@brief This API reads fifo overrun and fifo frame counter
  *	status register byte  from location 0Eh
  *
- *  @param v_stat_fifo_u8 : The status of fifo overrun and frame counter
+ *  @param stat_fifo_u8 : The status of fifo overrun and frame counter
  *
  *
  *
@@ -766,11 +840,12 @@ u8 *v_stat_orient_u8)
  *
  */
 BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_fifo_stat(
-u8 *v_stat_fifo_u8)
+u8 *stat_fifo_u8)
 {
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
@@ -778,8 +853,8 @@ u8 *v_stat_fifo_u8)
 			/* Read the interrupt status register 0x0E*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC(
 			p_bma2x2->dev_addr,
-			BMA2x2_STAT_FIFO_REG,
-			v_stat_fifo_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_STAT_FIFO_ADDR,
+			stat_fifo_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		}
 	return com_rslt;
 }
@@ -788,7 +863,7 @@ u8 *v_stat_fifo_u8)
  *	from location 0Eh bit position 0 to 6
  *
  *
- * @param v_frame_count_u8 : The status of fifo frame count
+ * @param frame_count_u8 : The status of fifo frame count
  *
  *
  *
@@ -799,12 +874,13 @@ u8 *v_stat_fifo_u8)
  *
  */
 BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_fifo_frame_count(
-u8 *v_frame_count_u8)
+u8 *frame_count_u8)
 {
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
@@ -812,9 +888,9 @@ u8 *v_frame_count_u8)
 			/* Read the FIFO frame count*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC(
 			p_bma2x2->dev_addr,
-			BMA2x2_FIFO_FRAME_COUNT_STAT__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_frame_count_u8 = BMA2x2_GET_BITSLICE(v_data_u8,
+			BMA2x2_FIFO_FRAME_COUNT_STAT_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*frame_count_u8 = BMA2x2_GET_BITSLICE(data_u8,
 			BMA2x2_FIFO_FRAME_COUNT_STAT);
 		}
 	return com_rslt;
@@ -824,7 +900,7 @@ u8 *v_frame_count_u8)
  *	from location 0Eh bit position 7
  *
  *
- * @param v_fifo_overrun_u8 : The status of fifo overrun
+ * @param fifo_overrun_u8 : The status of fifo overrun
  *
  *
  *
@@ -835,12 +911,13 @@ u8 *v_frame_count_u8)
  *
  */
 BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_fifo_overrun(
-u8 *v_fifo_overrun_u8)
+u8 *fifo_overrun_u8)
 {
 		/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
@@ -848,9 +925,9 @@ u8 *v_fifo_overrun_u8)
 			/* Read the status of fifo over run*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC(
 			p_bma2x2->dev_addr,
-			BMA2x2_FIFO_OVERRUN_STAT__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_fifo_overrun_u8 = BMA2x2_GET_BITSLICE(v_data_u8,
+			BMA2x2_FIFO_OVERRUN_STAT_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*fifo_overrun_u8 = BMA2x2_GET_BITSLICE(data_u8,
 			BMA2x2_FIFO_OVERRUN_STAT);
 		}
 	return com_rslt;
@@ -861,7 +938,7 @@ u8 *v_fifo_overrun_u8)
  *
  *
  *
- *	@param  v_intr_stat_u8 : The value of interrupt status
+ *	@param  intr_stat_u8 : The value of interrupt status
  *
  *
  *
@@ -872,11 +949,12 @@ u8 *v_fifo_overrun_u8)
  *
 */
 BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_intr_stat(
-u8 *v_intr_stat_u8)
+u8 *intr_stat_u8)
 {
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
@@ -884,7 +962,8 @@ u8 *v_intr_stat_u8)
 			/* Read the interrupt status register 0x09*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC(
 			p_bma2x2->dev_addr,
-			BMA2x2_STAT1_REG, v_intr_stat_u8, C_BMA2x2_FOUR_U8X);
+			BMA2x2_STAT1_ADDR, intr_stat_u8,
+			BMA2x2_SHIFT_FOUR_BITS);
 		}
 	return com_rslt;
 }
@@ -893,13 +972,13 @@ u8 *v_intr_stat_u8)
  *	in the register 0x0F bit from 0 to 3
  *
  *
- *	@param v_range_u8 : The value of range
- *		  v_range_u8       |   result
+ *	@param range_u8 : The value of range
+ *		  range_u8       |   result
  *       ----------------- | --------------
- *              0x00       | BMA2x2_RANGE_2G
- *              0x01       | BMA2x2_RANGE_4G
- *              0x02       | BMA2x2_RANGE_8G
- *              0x03       | BMA2x2_RANGE_16G
+ *              0x03       | BMA2x2_RANGE_2G
+ *              0x05       | BMA2x2_RANGE_4G
+ *              0x08       | BMA2x2_RANGE_8G
+ *              0x0C       | BMA2x2_RANGE_16G
  *
  *
  *
@@ -909,21 +988,23 @@ u8 *v_intr_stat_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_range(u8 *v_range_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_range(u8 *range_u8)
 {
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
 		/* Read the range register 0x0F*/
 		com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC(p_bma2x2->dev_addr,
-		BMA2x2_RANGE_SELECT__REG, &v_data_u8, C_BMA2x2_ONE_U8X);
-		v_data_u8 = BMA2x2_GET_BITSLICE(v_data_u8, BMA2x2_RANGE_SELECT);
-		*v_range_u8 = v_data_u8;
+		BMA2x2_RANGE_SELECT_REG, &data_u8,
+		BMA2x2_GEN_READ_WRITE_LENGTH);
+		data_u8 = BMA2x2_GET_BITSLICE(data_u8, BMA2x2_RANGE_SELECT);
+		*range_u8 = data_u8;
 	}
 	return com_rslt;
 }
@@ -932,13 +1013,13 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_range(u8 *v_range_u8)
  *	in the register 0x0F bit from 0 to 3
  *
  *
- *	@param v_range_u8 : The value of range
- *		  v_range_u8       |   result
+ *	@param range_u8 : The value of range
+ *		  range_u8 |   result
  *       ----------------- | --------------
- *              0x00       | BMA2x2_RANGE_2G
- *              0x01       | BMA2x2_RANGE_4G
- *              0x02       | BMA2x2_RANGE_8G
- *              0x03       | BMA2x2_RANGE_16G
+ *              0x03       | BMA2x2_RANGE_2G
+ *              0x05       | BMA2x2_RANGE_4G
+ *              0x08       | BMA2x2_RANGE_8G
+ *              0x0C       | BMA2x2_RANGE_16G
  *
  *
  *
@@ -948,39 +1029,45 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_range(u8 *v_range_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_range(u8 v_range_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_range(u8 range_u8)
 {
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
-		if ((v_range_u8 == C_BMA2x2_THREE_U8X) ||
-		(v_range_u8 == C_BMA2x2_FIVE_U8X) ||
-		(v_range_u8 == C_BMA2x2_EIGHT_U8X) ||
-		(v_range_u8 == C_BMA2x2_TWELVE_U8X)) {
+		if ((range_u8 == BMA2x2_RANGE_2G) ||
+		(range_u8 == BMA2x2_RANGE_4G) ||
+		(range_u8 == BMA2x2_RANGE_8G) ||
+		(range_u8 == BMA2x2_RANGE_16G)) {
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_RANGE_SELECT_REG, &v_data_u8, C_BMA2x2_ONE_U8X);
-			switch (v_range_u8) {
+			BMA2x2_RANGE_SELECT_REG, &data_u8,
+			BMA2x2_GEN_READ_WRITE_LENGTH);
+			switch (range_u8) {
 			case BMA2x2_RANGE_2G:
-				v_data_u8  = BMA2x2_SET_BITSLICE(v_data_u8,
-				BMA2x2_RANGE_SELECT, C_BMA2x2_THREE_U8X);
+				data_u8  = BMA2x2_SET_BITSLICE(data_u8,
+				BMA2x2_RANGE_SELECT,
+				BMA2x2_RANGE_2G);
 			break;
 			case BMA2x2_RANGE_4G:
-				v_data_u8  = BMA2x2_SET_BITSLICE(v_data_u8,
-				BMA2x2_RANGE_SELECT, C_BMA2x2_FIVE_U8X);
+				data_u8  = BMA2x2_SET_BITSLICE(data_u8,
+				BMA2x2_RANGE_SELECT,
+				BMA2x2_RANGE_4G);
 			break;
 			case BMA2x2_RANGE_8G:
-				v_data_u8  = BMA2x2_SET_BITSLICE(v_data_u8,
-				BMA2x2_RANGE_SELECT, C_BMA2x2_EIGHT_U8X);
+				data_u8  = BMA2x2_SET_BITSLICE(data_u8,
+				BMA2x2_RANGE_SELECT,
+				BMA2x2_RANGE_8G);
 			break;
 			case BMA2x2_RANGE_16G:
-				v_data_u8  = BMA2x2_SET_BITSLICE(v_data_u8,
-				BMA2x2_RANGE_SELECT, C_BMA2x2_TWELVE_U8X);
+				data_u8  = BMA2x2_SET_BITSLICE(data_u8,
+				BMA2x2_RANGE_SELECT,
+				BMA2x2_RANGE_16G);
 			break;
 			default:
 			break;
@@ -988,7 +1075,8 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_range(u8 v_range_u8)
 			/* Write the range register 0x0F*/
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_RANGE_SELECT_REG, &v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_RANGE_SELECT_REG, &data_u8,
+			BMA2x2_GEN_READ_WRITE_LENGTH);
 		} else {
 		com_rslt = E_OUT_OF_RANGE;
 		}
@@ -1000,8 +1088,8 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_range(u8 v_range_u8)
  *	0x10 bit from 0 to 4
  *
  *
- *  @param v_bw_u8 : The value of bandwidth
- *		  v_bw_u8          |   result
+ *  @param bw_u8 : The value of bandwidth
+ *		  bw_u8          |   result
  *       ----------------- | --------------
  *              0x08       | BMA2x2_BW_7_81HZ
  *              0x09       | BMA2x2_BW_15_63HZ
@@ -1020,12 +1108,13 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_range(u8 v_range_u8)
  *
  *
 */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_bw(u8 *v_bw_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_bw(u8 *bw_u8)
 {
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
@@ -1033,19 +1122,21 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_bw(u8 *v_bw_u8)
 			/* Read the bandwidth register 0x10*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_BW__REG, &v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_GET_BITSLICE(v_data_u8, BMA2x2_BW);
-			*v_bw_u8 = v_data_u8;
+			BMA2x2_BW_REG, &data_u8,
+			BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_GET_BITSLICE(data_u8, BMA2x2_BW);
+			*bw_u8 = data_u8;
 		}
 	return com_rslt;
 }
 /*!
- *	@brief This API is used to set the bandwidth of the sensor in the register
+ *	@brief This API is used to set the bandwidth of the sensor
+ *      in the register
  *	0x10 bit from 0 to 4
  *
  *
- *  @param v_bw_u8 : The value of bandwidth
- *		  v_bw_u8          |   result
+ *  @param bw_u8 : The value of bandwidth
+ *		  bw_u8          |   result
  *       ----------------- | --------------
  *              0x08       | BMA2x2_BW_7_81HZ
  *              0x09       | BMA2x2_BW_15_63HZ
@@ -1064,54 +1155,54 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_bw(u8 *v_bw_u8)
  *
  *
 */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_bw(u8 v_bw_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_bw(u8 bw_u8)
 {
 /*  Variable used to return value of
 communication routine*/
 BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
-u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
-u8 v_data_bw_u8 = C_BMA2x2_ZERO_U8X;
+u8 data_u8 = BMA2x2_INIT_VALUE;
+u8 data_bw_u8 = BMA2x2_INIT_VALUE;
 if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
-		return E_BMA2x2_NULL_PTR;
+		com_rslt = E_BMA2x2_NULL_PTR;
 	} else {
 	/* Check the chip id 0xFB, it support upto 500Hz*/
 	if (p_bma2x2->chip_id == BANDWIDTH_DEFINE) {
-		if (v_bw_u8 > C_BMA2x2_SEVEN_U8X &&
-		v_bw_u8 < C_BMA2x2_FIFETEEN_U8X) {
-			switch (v_bw_u8) {
+		if (bw_u8 > BMA2x2_ACCEL_BW_MIN_RANGE &&
+		bw_u8 < BMA2x2_ACCEL_BW_1000HZ_RANGE) {
+			switch (bw_u8) {
 			case BMA2x2_BW_7_81HZ:
-				v_data_bw_u8 = BMA2x2_BW_7_81HZ;
+				data_bw_u8 = BMA2x2_BW_7_81HZ;
 
 				/*  7.81 Hz      64000 uS   */
 			break;
 			case BMA2x2_BW_15_63HZ:
-				v_data_bw_u8 = BMA2x2_BW_15_63HZ;
+				data_bw_u8 = BMA2x2_BW_15_63HZ;
 
 			/*  15.63 Hz     32000 uS   */
 			break;
 			case BMA2x2_BW_31_25HZ:
-				v_data_bw_u8 = BMA2x2_BW_31_25HZ;
+				data_bw_u8 = BMA2x2_BW_31_25HZ;
 
 			/*  31.25 Hz     16000 uS   */
 			break;
 			case BMA2x2_BW_62_50HZ:
-				v_data_bw_u8 = BMA2x2_BW_62_50HZ;
+				data_bw_u8 = BMA2x2_BW_62_50HZ;
 
 			/*  62.50 Hz     8000 uS   */
 			break;
 			case BMA2x2_BW_125HZ:
-				v_data_bw_u8 = BMA2x2_BW_125HZ;
+				data_bw_u8 = BMA2x2_BW_125HZ;
 
 			/*  125 Hz       4000 uS   */
 			break;
 			case BMA2x2_BW_250HZ:
-				v_data_bw_u8 = BMA2x2_BW_250HZ;
+				data_bw_u8 = BMA2x2_BW_250HZ;
 
 			/*  250 Hz       2000 uS   */
 			break;
 			case BMA2x2_BW_500HZ:
-				v_data_bw_u8 = BMA2x2_BW_500HZ;
+				data_bw_u8 = BMA2x2_BW_500HZ;
 
 			/*  500 Hz       1000 uS   */
 			break;
@@ -1121,56 +1212,58 @@ if (p_bma2x2 == BMA2x2_NULL) {
 			/* Write the bandwidth register */
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_BW__REG, &v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE(v_data_u8,
-			BMA2x2_BW, v_data_bw_u8);
+			BMA2x2_BW_REG, &data_u8,
+			BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE(data_u8,
+			BMA2x2_BW, data_bw_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_BW__REG, &v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_BW_REG, &data_u8,
+			BMA2x2_GEN_READ_WRITE_LENGTH);
 			} else {
 			com_rslt = E_OUT_OF_RANGE;
 			}
 		} else {
-		if (v_bw_u8 > C_BMA2x2_SEVEN_U8X &&
-		v_bw_u8 < C_BMA2x2_SIXTEEN_U8X) {
-			switch (v_bw_u8) {
+		if (bw_u8 > BMA2x2_ACCEL_BW_MIN_RANGE &&
+		bw_u8 < BMA2x2_ACCEL_BW_MAX_RANGE) {
+			switch (bw_u8) {
 			case BMA2x2_BW_7_81HZ:
-				v_data_bw_u8 = BMA2x2_BW_7_81HZ;
+				data_bw_u8 = BMA2x2_BW_7_81HZ;
 
 			/*  7.81 Hz      64000 uS   */
 			break;
 			case BMA2x2_BW_15_63HZ:
-				v_data_bw_u8 = BMA2x2_BW_15_63HZ;
+				data_bw_u8 = BMA2x2_BW_15_63HZ;
 
 			/*  15.63 Hz     32000 uS   */
 			break;
 			case BMA2x2_BW_31_25HZ:
-				v_data_bw_u8 = BMA2x2_BW_31_25HZ;
+				data_bw_u8 = BMA2x2_BW_31_25HZ;
 
 			/*  31.25 Hz     16000 uS   */
 			break;
 			case BMA2x2_BW_62_50HZ:
-				v_data_bw_u8 = BMA2x2_BW_62_50HZ;
+				data_bw_u8 = BMA2x2_BW_62_50HZ;
 
 			/*  62.50 Hz     8000 uS   */
 			break;
 			case BMA2x2_BW_125HZ:
-				v_data_bw_u8 = BMA2x2_BW_125HZ;
+				data_bw_u8 = BMA2x2_BW_125HZ;
 
 			/*  125 Hz       4000 uS   */
 			break;
 			case BMA2x2_BW_250HZ:
-				v_data_bw_u8 = BMA2x2_BW_250HZ;
+				data_bw_u8 = BMA2x2_BW_250HZ;
 
 			/*  250 Hz       2000 uS   */
 			break;
 			case BMA2x2_BW_500HZ:
-				v_data_bw_u8 = BMA2x2_BW_500HZ;
+				data_bw_u8 = BMA2x2_BW_500HZ;
 
 			/*!  500 Hz       1000 uS   */
 			break;
 			case BMA2x2_BW_1000HZ:
-				v_data_bw_u8 = BMA2x2_BW_1000HZ;
+				data_bw_u8 = BMA2x2_BW_1000HZ;
 
 			/*  1000 Hz      500 uS   */
 			break;
@@ -1180,12 +1273,14 @@ if (p_bma2x2 == BMA2x2_NULL) {
 			/* Write the bandwidth register */
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_BW__REG, &v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8, BMA2x2_BW, v_data_bw_u8);
+			BMA2x2_BW_REG, &data_u8,
+			BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8, BMA2x2_BW, data_bw_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_BW__REG, &v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_BW_REG, &data_u8,
+			BMA2x2_GEN_READ_WRITE_LENGTH);
 			} else {
 			com_rslt = E_OUT_OF_RANGE;
 			}
@@ -1200,8 +1295,8 @@ if (p_bma2x2 == BMA2x2_NULL) {
  *	@note Register 0x12 - bit from 5 and 6
  *
  *
- *  @param v_power_mode_u8 : The value of power mode
- *	v_power_mode_u8           |value  |   0x11  |   0x12
+ *  @param power_mode_u8 : The value of power mode
+ *	power_mode_u8           |value  |   0x11  |   0x12
  *  ------------------------- |-------| --------|--------
  *  BMA2x2_MODE_NORMAL        |  0    |  0x00   |  0x00
  *  BMA2x2_MODE_LOWPOWER1     |  1    |  0x02   |  0x00
@@ -1219,72 +1314,74 @@ if (p_bma2x2 == BMA2x2_NULL) {
  *
  */
 BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_power_mode(
-u8 *v_power_mode_u8)
+u8 *power_mode_u8)
 {
 	/*  Variable used to return value of
 	communication routine*/
-	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
-u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
-u8 v_data2_u8 = C_BMA2x2_ZERO_U8X;
+BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+u8 data_u8 = BMA2x2_INIT_VALUE;
+u8 data2_u8 = BMA2x2_INIT_VALUE;
 if (p_bma2x2 == BMA2x2_NULL) {
 	/* Check the struct p_bma2x2 is empty */
-		return E_BMA2x2_NULL_PTR;
+		com_rslt = E_BMA2x2_NULL_PTR;
 	} else {
 		com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 		(p_bma2x2->dev_addr, BMA2x2_MODE_CTRL_REG,
-		&v_data_u8, C_BMA2x2_ONE_U8X);
+		&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		com_rslt += p_bma2x2->BMA2x2_BUS_READ_FUNC
-		(p_bma2x2->dev_addr, BMA2x2_LOW_NOISE_CTRL_REG,
-		&v_data2_u8, C_BMA2x2_ONE_U8X);
+		(p_bma2x2->dev_addr, BMA2x2_LOW_NOISE_CTRL_ADDR,
+		&data2_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 
-		v_data_u8  = (v_data_u8 &
-		POWER_MODE_HEX_E_ZERO_MASK) >> C_BMA2x2_FIVE_U8X;
-		v_data2_u8  = (v_data2_u8 &
-		POWER_MODE_HEX_4_ZERO_MASK) >> C_BMA2x2_SIX_U8X;
+		data_u8  = (data_u8 &
+		BMA2x2_POWER_MODE_HEX_E_ZERO_MASK) >>
+		BMA2x2_SHIFT_FIVE_BITS;
+		data2_u8  = (data2_u8 &
+		BMA2x2_POWER_MODE_HEX_4_ZERO_MASK) >>
+		BMA2x2_SHIFT_SIX_BITS;
 
-	if ((v_data_u8 ==
-	POWER_MODE_HEX_ZERO_ZERO_MASK) &&
-	(v_data2_u8 ==
-	POWER_MODE_HEX_ZERO_ZERO_MASK)) {
-		*v_power_mode_u8  = BMA2x2_MODE_NORMAL;
+	if ((data_u8 ==
+	BMA2x2_POWER_MODE_HEX_ZERO_ZERO_MASK) &&
+	(data2_u8 ==
+	BMA2x2_POWER_MODE_HEX_ZERO_ZERO_MASK)) {
+		*power_mode_u8  = BMA2x2_MODE_NORMAL;
 		} else {
-		if ((v_data_u8 ==
-		POWER_MODE_HEX_ZERO_TWO_MASK) &&
-		(v_data2_u8 ==
-		POWER_MODE_HEX_ZERO_ZERO_MASK)) {
-			*v_power_mode_u8  =
+		if ((data_u8 ==
+		BMA2x2_POWER_MODE_HEX_ZERO_TWO_MASK) &&
+		(data2_u8 ==
+		BMA2x2_POWER_MODE_HEX_ZERO_ZERO_MASK)) {
+			*power_mode_u8  =
 			BMA2x2_MODE_LOWPOWER1;
 			} else {
-			if ((v_data_u8 ==
-			POWER_MODE_HEX_ZERO_FOUR_MASK
-			|| v_data_u8 ==
-			POWER_MODE_HEX_ZERO_SIX_MASK) &&
-			(v_data2_u8 ==
-			POWER_MODE_HEX_ZERO_ZERO_MASK)) {
-				*v_power_mode_u8  =
+			if ((data_u8 ==
+			BMA2x2_POWER_MODE_HEX_ZERO_FOUR_MASK
+			|| data_u8 ==
+			BMA2x2_POWER_MODE_HEX_ZERO_SIX_MASK) &&
+			(data2_u8 ==
+			BMA2x2_POWER_MODE_HEX_ZERO_ZERO_MASK)) {
+				*power_mode_u8  =
 				BMA2x2_MODE_SUSPEND;
 				} else {
-				if (((v_data_u8 &
-				POWER_MODE_HEX_ZERO_ONE_MASK)
-				== POWER_MODE_HEX_ZERO_ONE_MASK)) {
-					*v_power_mode_u8  =
+				if (((data_u8 &
+				BMA2x2_POWER_MODE_HEX_ZERO_ONE_MASK)
+				== BMA2x2_POWER_MODE_HEX_ZERO_ONE_MASK)) {
+					*power_mode_u8  =
 					BMA2x2_MODE_DEEP_SUSPEND;
 					} else {
-					if ((v_data_u8 ==
-					POWER_MODE_HEX_ZERO_TWO_MASK)
-					&& (v_data2_u8 ==
-					POWER_MODE_HEX_ZERO_ONE_MASK)) {
-						*v_power_mode_u8  =
+					if ((data_u8 ==
+					BMA2x2_POWER_MODE_HEX_ZERO_TWO_MASK)
+					&& (data2_u8 ==
+					BMA2x2_POWER_MODE_HEX_ZERO_ONE_MASK)) {
+						*power_mode_u8  =
 						BMA2x2_MODE_LOWPOWER2;
 					} else {
-					if ((v_data_u8 ==
-					POWER_MODE_HEX_ZERO_FOUR_MASK) &&
-						(v_data2_u8 ==
-						POWER_MODE_HEX_ZERO_ONE_MASK))
-							*v_power_mode_u8  =
+					if ((data_u8 ==
+					BMA2x2_POWER_MODE_HEX_ZERO_FOUR_MASK) &&
+					(data2_u8 ==
+					BMA2x2_POWER_MODE_HEX_ZERO_ONE_MASK))
+						*power_mode_u8  =
 							BMA2x2_MODE_STANDBY;
 					else
-						*v_power_mode_u8 =
+						*power_mode_u8 =
 						BMA2x2_MODE_DEEP_SUSPEND;
 						}
 					}
@@ -1292,7 +1389,7 @@ if (p_bma2x2 == BMA2x2_NULL) {
 			}
 		}
 	}
-	p_bma2x2->v_power_mode_u8 = *v_power_mode_u8;
+	p_bma2x2->power_mode_u8 = *power_mode_u8;
 return com_rslt;
 }
 /*!
@@ -1302,8 +1399,8 @@ return com_rslt;
  *	@note Register 0x12 - bit from 5 and 6
  *
  *
- *  @param v_power_mode_u8 : The value of power mode
- *	v_power_mode_u8           |value  |   0x11  |   0x12
+ *  @param power_mode_u8 : The value of power mode
+ *	power_mode_u8           |value  |   0x11  |   0x12
  *  ------------------------- |-------| --------|--------
  *  BMA2x2_MODE_NORMAL        |  0    |  0x00   |  0x00
  *  BMA2x2_MODE_LOWPOWER1     |  1    |  0x02   |  0x00
@@ -1320,83 +1417,84 @@ return com_rslt;
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_power_mode(u8 v_power_mode_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_power_mode(u8 power_mode_u8)
 {
 		/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
-	u8 mode_ctr_eleven_reg = C_BMA2x2_ZERO_U8X;
-	u8 mode_ctr_twel_reg = C_BMA2x2_ZERO_U8X;
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
-	u8 v_data2_u8 = C_BMA2x2_ZERO_U8X;
-	u8 v_pre_fifo_config_data = C_BMA2x2_ZERO_U8X;
+	u8 mode_ctr_eleven_reg = BMA2x2_INIT_VALUE;
+	u8 mode_ctr_twel_reg = BMA2x2_INIT_VALUE;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
+	u8 data2_u8 = BMA2x2_INIT_VALUE;
+	u8 pre_fifo_config_data = BMA2x2_INIT_VALUE;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
-		return E_BMA2x2_NULL_PTR;
+		com_rslt = E_BMA2x2_NULL_PTR;
 	} else {
 		com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 		(p_bma2x2->dev_addr,
 		BMA2x2_MODE_CTRL_REG,
-		&v_data_u8, C_BMA2x2_ONE_U8X);
+		&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		com_rslt += p_bma2x2->BMA2x2_BUS_READ_FUNC
 		(p_bma2x2->dev_addr,
-		BMA2x2_LOW_POWER_MODE__REG,
-		&v_data2_u8, C_BMA2x2_ONE_U8X);
+		BMA2x2_LOW_POWER_MODE_REG,
+		&data2_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 
-		com_rslt += bma2x2_set_mode_value(v_power_mode_u8);
+		com_rslt += bma2x2_set_mode_value(power_mode_u8);
 		mode_ctr_eleven_reg = p_bma2x2->ctrl_mode_reg;
 		mode_ctr_twel_reg =  p_bma2x2->low_mode_reg;
 		/* write the power mode to
 		register 0x12*/
-		v_data2_u8  = BMA2x2_SET_BITSLICE
-		(v_data2_u8, BMA2x2_LOW_POWER_MODE,
+		data2_u8  = BMA2x2_SET_BITSLICE
+		(data2_u8, BMA2x2_LOW_POWER_MODE,
 		mode_ctr_twel_reg);
 		com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-		(p_bma2x2->dev_addr, BMA2x2_LOW_POWER_MODE__REG,
-		&v_data2_u8, C_BMA2x2_ONE_U8X);
+		(p_bma2x2->dev_addr, BMA2x2_LOW_POWER_MODE_REG,
+		&data2_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		/*A minimum delay of
 		atleast 450us is required for
 		the low power modes,
 		as per the data sheet.*/
-		p_bma2x2->delay_msec(C_BMA2x2_ONE_U8X);
+		p_bma2x2->delay_msec(BMA2x2_GEN_READ_WRITE_LENGTH);
 		/* Enter the power mode to suspend*/
-		v_data_u8  = BMA2x2_SET_BITSLICE
-		(v_data_u8, BMA2x2_MODE_CTRL,
-		C_BMA2x2_FOUR_U8X);
+		data_u8  = BMA2x2_SET_BITSLICE
+		(data_u8, BMA2x2_MODE_CTRL,
+		BMA2x2_SHIFT_FOUR_BITS);
 		/* write the power mode to suspend*/
 		com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 		(p_bma2x2->dev_addr, BMA2x2_MODE_CTRL_REG,
-		&v_data_u8, C_BMA2x2_ONE_U8X);
+		&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		/*A minimum delay of
 		atleast 450us is required for
 		the low power modes,
 		as per the data sheet.*/
-		p_bma2x2->delay_msec(C_BMA2x2_ONE_U8X);
+		p_bma2x2->delay_msec(BMA2x2_GEN_READ_WRITE_LENGTH);
 		/* write the previous FIFO mode and data select*/
-		v_pre_fifo_config_data = p_bma2x2->fifo_config;
+		pre_fifo_config_data = p_bma2x2->fifo_config;
 		com_rslt += bma2x2_write_reg(BMA2x2_FIFO_MODE_REG,
-		&v_pre_fifo_config_data, C_BMA2x2_ONE_U8X);
+		&pre_fifo_config_data, BMA2x2_GEN_READ_WRITE_LENGTH);
 		/*A minimum delay of
 		atleast 450us is required for
 		the low power modes,
 		as per the data sheet.*/
-		p_bma2x2->delay_msec(C_BMA2x2_ONE_U8X);
+		p_bma2x2->delay_msec(BMA2x2_GEN_READ_WRITE_LENGTH);
 		com_rslt += p_bma2x2->BMA2x2_BUS_READ_FUNC
 		(p_bma2x2->dev_addr,
 		BMA2x2_MODE_CTRL_REG,
-		&v_data_u8, C_BMA2x2_ONE_U8X);
+		&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		/* write the power mode to 11th register*/
-		v_data_u8  = BMA2x2_SET_BITSLICE
-		(v_data_u8, BMA2x2_MODE_CTRL,
+		data_u8  = BMA2x2_SET_BITSLICE
+		(data_u8, BMA2x2_MODE_CTRL,
 		mode_ctr_eleven_reg);
 		com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 		(p_bma2x2->dev_addr, BMA2x2_MODE_CTRL_REG,
-		&v_data_u8, C_BMA2x2_ONE_U8X);
+		&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		/*A minimum delay of
 		atleast 450us is required for
 		the low power modes,
 		as per the data sheet.*/
-		p_bma2x2->delay_msec(C_BMA2x2_ONE_U8X);
+		p_bma2x2->delay_msec(BMA2x2_GEN_READ_WRITE_LENGTH);
 	}
 	return com_rslt;
 }
@@ -1407,8 +1505,8 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_power_mode(u8 v_power_mode_u8)
  *	@note Register 0x12 - bit from 5 and 6
  *
  *
- *  @param v_power_mode_u8 : The value of power mode
- *	v_power_mode_u8           |value  |   0x11  |   0x12
+ *  @param power_mode_u8 : The value of power mode
+ *	power_mode_u8           |value  |   0x11  |   0x12
  *  ------------------------- |-------| --------|--------
  *  BMA2x2_MODE_NORMAL        |  0    |  0x00   |  0x00
  *  BMA2x2_MODE_LOWPOWER1     |  1    |  0x02   |  0x00
@@ -1425,48 +1523,49 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_power_mode(u8 v_power_mode_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_mode_value(u8 v_power_mode_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_mode_value(u8 power_mode_u8)
 {
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = SUCCESS;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
-		return E_BMA2x2_NULL_PTR;
+		com_rslt = E_BMA2x2_NULL_PTR;
 	} else {
-	if (v_power_mode_u8 < C_BMA2x2_SIX_U8X) {
-		switch (v_power_mode_u8)	{
+	if (power_mode_u8 < BMA2x2_POWER_MODE_RANGE) {
+		switch (power_mode_u8)	{
 		case BMA2x2_MODE_NORMAL:
 			p_bma2x2->ctrl_mode_reg =
-			POWER_MODE_HEX_ZERO_ZERO_MASK;
+			BMA2x2_POWER_MODE_HEX_ZERO_ZERO_MASK;
 			p_bma2x2->low_mode_reg =
-			POWER_MODE_HEX_ZERO_ZERO_MASK;
+			BMA2x2_POWER_MODE_HEX_ZERO_ZERO_MASK;
 		break;
 		case BMA2x2_MODE_LOWPOWER1:
 			p_bma2x2->ctrl_mode_reg =
-			POWER_MODE_HEX_ZERO_TWO_MASK;
+			BMA2x2_POWER_MODE_HEX_ZERO_TWO_MASK;
 			p_bma2x2->low_mode_reg =
-			POWER_MODE_HEX_ZERO_ZERO_MASK;
+			BMA2x2_POWER_MODE_HEX_ZERO_ZERO_MASK;
 		break;
 		case BMA2x2_MODE_LOWPOWER2:
 			p_bma2x2->ctrl_mode_reg =
-			POWER_MODE_HEX_ZERO_TWO_MASK;
+			BMA2x2_POWER_MODE_HEX_ZERO_TWO_MASK;
 			p_bma2x2->low_mode_reg =
-			POWER_MODE_HEX_ZERO_ONE_MASK;
+			BMA2x2_POWER_MODE_HEX_ZERO_ONE_MASK;
 		break;
 		case BMA2x2_MODE_SUSPEND:
 			p_bma2x2->ctrl_mode_reg =
-			POWER_MODE_HEX_ZERO_FOUR_MASK;
+			BMA2x2_POWER_MODE_HEX_ZERO_FOUR_MASK;
 			p_bma2x2->low_mode_reg =
-			POWER_MODE_HEX_ZERO_ZERO_MASK;
+			BMA2x2_POWER_MODE_HEX_ZERO_ZERO_MASK;
 		break;
 		case BMA2x2_MODE_STANDBY:
 			p_bma2x2->ctrl_mode_reg =
-			POWER_MODE_HEX_ZERO_FOUR_MASK;
+			BMA2x2_POWER_MODE_HEX_ZERO_FOUR_MASK;
 			p_bma2x2->low_mode_reg =
-			POWER_MODE_HEX_ZERO_ONE_MASK;
+			BMA2x2_POWER_MODE_HEX_ZERO_ONE_MASK;
 		break;
 		case BMA2x2_MODE_DEEP_SUSPEND:
 			p_bma2x2->ctrl_mode_reg =
-			POWER_MODE_HEX_ZERO_ONE_MASK;
+			BMA2x2_POWER_MODE_HEX_ZERO_ONE_MASK;
 		break;
 		}
 		} else {
@@ -1481,8 +1580,8 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_mode_value(u8 v_power_mode_u8)
  *	Register 0x11 - bit from 0 to 3
  *
  *
- *  @param  v_sleep_durn_u8 : The value of sleep duration time
- *         v_sleep_durn_u8 |   result
+ *  @param  sleep_durn_u8 : The value of sleep duration time
+ *         sleep_durn_u8 |   result
  *       ----------------- | ----------------------
  *              0x05       | BMA2x2_SLEEP_DURN_0_5MS
  *              0x06       | BMA2x2_SLEEP_DURN_1MS
@@ -1504,22 +1603,23 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_mode_value(u8 v_power_mode_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_sleep_durn(u8 *v_sleep_durn_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_sleep_durn(u8 *sleep_durn_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
 			/* read the sleep duration */
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
-			(p_bma2x2->dev_addr, BMA2x2_SLEEP_DURN__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_sleep_durn_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_SLEEP_DURN);
+			(p_bma2x2->dev_addr, BMA2x2_SLEEP_DURN_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*sleep_durn_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_SLEEP_DURN);
 		}
 	return com_rslt;
 }
@@ -1531,8 +1631,8 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_sleep_durn(u8 *v_sleep_durn_u8)
  *
  *
  *
- *  @param  v_sleep_durn_u8 : The value of sleep duration time
- *        v_sleep_durn_u8  |   result
+ *  @param  sleep_durn_u8 : The value of sleep duration time
+ *        sleep_durn_u8  |   result
  *       ----------------- | ----------------------
  *              0x05       | BMA2x2_SLEEP_DURN_0_5MS
  *              0x06       | BMA2x2_SLEEP_DURN_1MS
@@ -1554,72 +1654,73 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_sleep_durn(u8 *v_sleep_durn_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_sleep_durn(u8 v_sleep_durn_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_sleep_durn(u8 sleep_durn_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
-	u8 v_data_sleep_durn_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_sleep_durn_u8 = BMA2x2_INIT_VALUE;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
-		if (v_sleep_durn_u8 > C_BMA2x2_FOUR_U8X &&
-		v_sleep_durn_u8 < C_BMA2x2_SIXTEEN_U8X) {
-			switch (v_sleep_durn_u8) {
+		if (sleep_durn_u8 > BMA2x2_SLEEP_DURN_MIN_RANGE &&
+		sleep_durn_u8 < BMA2x2_SLEEP_DURN_MAX_RANGE) {
+			switch (sleep_durn_u8) {
 			case BMA2x2_SLEEP_DURN_0_5MS:
-				v_data_sleep_durn_u8 = BMA2x2_SLEEP_DURN_0_5MS;
+				data_sleep_durn_u8 = BMA2x2_SLEEP_DURN_0_5MS;
 
 				/*  0.5 MS   */
 			break;
 			case BMA2x2_SLEEP_DURN_1MS:
-				v_data_sleep_durn_u8 = BMA2x2_SLEEP_DURN_1MS;
+				data_sleep_durn_u8 = BMA2x2_SLEEP_DURN_1MS;
 
 				/*  1 MS  */
 			break;
 			case BMA2x2_SLEEP_DURN_2MS:
-				v_data_sleep_durn_u8 = BMA2x2_SLEEP_DURN_2MS;
+				data_sleep_durn_u8 = BMA2x2_SLEEP_DURN_2MS;
 
 				/*  2 MS  */
 			break;
 			case BMA2x2_SLEEP_DURN_4MS:
-				v_data_sleep_durn_u8 = BMA2x2_SLEEP_DURN_4MS;
+				data_sleep_durn_u8 = BMA2x2_SLEEP_DURN_4MS;
 
 				/*  4 MS   */
 			break;
 			case BMA2x2_SLEEP_DURN_6MS:
-				v_data_sleep_durn_u8 = BMA2x2_SLEEP_DURN_6MS;
+				data_sleep_durn_u8 = BMA2x2_SLEEP_DURN_6MS;
 
 				/*  6 MS  */
 			break;
 			case BMA2x2_SLEEP_DURN_10MS:
-				v_data_sleep_durn_u8 = BMA2x2_SLEEP_DURN_10MS;
+				data_sleep_durn_u8 = BMA2x2_SLEEP_DURN_10MS;
 
 				/*  10 MS  */
 			break;
 			case BMA2x2_SLEEP_DURN_25MS:
-				v_data_sleep_durn_u8 = BMA2x2_SLEEP_DURN_25MS;
+				data_sleep_durn_u8 = BMA2x2_SLEEP_DURN_25MS;
 
 				/*  25 MS  */
 			break;
 			case BMA2x2_SLEEP_DURN_50MS:
-				v_data_sleep_durn_u8 = BMA2x2_SLEEP_DURN_50MS;
+				data_sleep_durn_u8 = BMA2x2_SLEEP_DURN_50MS;
 
 				/*  50 MS   */
 			break;
 			case BMA2x2_SLEEP_DURN_100MS:
-				v_data_sleep_durn_u8 = BMA2x2_SLEEP_DURN_100MS;
+				data_sleep_durn_u8 = BMA2x2_SLEEP_DURN_100MS;
 
 				/*  100 MS  */
 			break;
 			case BMA2x2_SLEEP_DURN_500MS:
-				v_data_sleep_durn_u8 = BMA2x2_SLEEP_DURN_500MS;
+				data_sleep_durn_u8 = BMA2x2_SLEEP_DURN_500MS;
 
 				/*  500 MS   */
 			break;
 			case BMA2x2_SLEEP_DURN_1S:
-				v_data_sleep_durn_u8 = BMA2x2_SLEEP_DURN_1S;
+				data_sleep_durn_u8 = BMA2x2_SLEEP_DURN_1S;
 
 				/*!  1 SECS   */
 			break;
@@ -1628,13 +1729,13 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_sleep_durn(u8 v_sleep_durn_u8)
 			}
 			/* write the sleep duration */
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
-			(p_bma2x2->dev_addr, BMA2x2_SLEEP_DURN__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8, BMA2x2_SLEEP_DURN, v_data_sleep_durn_u8);
+			(p_bma2x2->dev_addr, BMA2x2_SLEEP_DURN_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8, BMA2x2_SLEEP_DURN, data_sleep_durn_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr, BMA2x2_SLEEP_DURN__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			(p_bma2x2->dev_addr, BMA2x2_SLEEP_DURN_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		} else {
 		com_rslt = E_OUT_OF_RANGE;
 		}
@@ -1648,8 +1749,8 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_sleep_durn(u8 v_sleep_durn_u8)
  *
  *
  *
- *  @param  v_sleep_timer_u8 : The value of sleep timer mode
- *        v_sleep_timer_u8 |   result
+ *  @param  sleep_timer_u8 : The value of sleep timer mode
+ *        sleep_timer_u8 |   result
  *       ----------------- | ----------------------
  *              0          | enable EventDrivenSampling(EDT)
  *              1          | enable Equidistant sampling mode(EST)
@@ -1662,22 +1763,23 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_sleep_durn(u8 v_sleep_durn_u8)
  *
  */
 BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_sleep_timer_mode(
-u8 *v_sleep_timer_u8)
+u8 *sleep_timer_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
 			/*Read the SLEEP TIMER MODE*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
-			(p_bma2x2->dev_addr, BMA2x2_SLEEP_TIMER__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_sleep_timer_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_SLEEP_TIMER);
+			(p_bma2x2->dev_addr, BMA2x2_SLEEP_TIMER_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*sleep_timer_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_SLEEP_TIMER);
 		}
 	return com_rslt;
 }
@@ -1688,8 +1790,8 @@ u8 *v_sleep_timer_u8)
  *
  *
  *
- *  @param  v_sleep_timer_u8 : The value of sleep timer mode
- *        v_sleep_timer_u8 |   result
+ *  @param  sleep_timer_u8 : The value of sleep timer mode
+ *        sleep_timer_u8 |   result
  *       ----------------- | ----------------------
  *              0          | enable EventDrivenSampling(EDT)
  *              1          | enable Equidistant sampling mode(EST)
@@ -1701,26 +1803,27 @@ u8 *v_sleep_timer_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_sleep_timer_mode(u8 v_sleep_timer_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_sleep_timer_mode(u8 sleep_timer_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
-		if (v_sleep_timer_u8 < C_BMA2x2_TWO_U8X) {
+		if (sleep_timer_u8 < BMA2x2_SLEEP_TIMER_MODE_RANGE) {
 			/* write the SLEEP TIMER MODE*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
-			(p_bma2x2->dev_addr, BMA2x2_SLEEP_TIMER__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8, BMA2x2_SLEEP_TIMER, v_sleep_timer_u8);
+			(p_bma2x2->dev_addr, BMA2x2_SLEEP_TIMER_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8, BMA2x2_SLEEP_TIMER, sleep_timer_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr, BMA2x2_SLEEP_TIMER__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			(p_bma2x2->dev_addr, BMA2x2_SLEEP_TIMER_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		} else {
 		com_rslt = E_OUT_OF_RANGE;
 		}
@@ -1731,8 +1834,8 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_sleep_timer_mode(u8 v_sleep_timer_u8)
  * @brief This API is used to get high bandwidth
  *		in the register 0x13 bit 7
  *
- *  @param  v_high_bw_u8 : The value of high bandwidth
- *         v_high_bw_u8    |   result
+ *  @param  high_bw_u8 : The value of high bandwidth
+ *         high_bw_u8    |   result
  *       ----------------- | ----------------------
  *              0          | Unfiltered High Bandwidth
  *              1          | Filtered Low Bandwidth
@@ -1744,21 +1847,22 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_sleep_timer_mode(u8 v_sleep_timer_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_high_bw(u8 *v_high_bw_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_high_bw(u8 *high_bw_u8)
 {
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		return  E_BMA2x2_NULL_PTR;
 		} else {
 			/* Read the high bandwidth*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
-			(p_bma2x2->dev_addr, BMA2x2_ENABLE_DATA_HIGH_BW__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_high_bw_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_ENABLE_DATA_HIGH_BW);
+			(p_bma2x2->dev_addr, BMA2x2_ENABLE_DATA_HIGH_BW_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*high_bw_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_ENABLE_DATA_HIGH_BW);
 		}
 	return com_rslt;
 }
@@ -1766,8 +1870,8 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_high_bw(u8 *v_high_bw_u8)
  * @brief This API is used to write high bandwidth
  *		in the register 0x13 bit 7
  *
- *  @param  v_high_bw_u8 : The value of high bandwidth
- *         v_high_bw_u8    |   result
+ *  @param  high_bw_u8 : The value of high bandwidth
+ *         high_bw_u8    |   result
  *       ----------------- | ----------------------
  *              0          | Unfiltered High Bandwidth
  *              1          | Filtered Low Bandwidth
@@ -1779,25 +1883,26 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_high_bw(u8 *v_high_bw_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_high_bw(u8 v_high_bw_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_high_bw(u8 high_bw_u8)
 {
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		return  E_BMA2x2_NULL_PTR;
 		}  else {
 			/* Write the high bandwidth*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
-			(p_bma2x2->dev_addr, BMA2x2_ENABLE_DATA_HIGH_BW__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE(v_data_u8,
-			BMA2x2_ENABLE_DATA_HIGH_BW, v_high_bw_u8);
+			(p_bma2x2->dev_addr, BMA2x2_ENABLE_DATA_HIGH_BW_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE(data_u8,
+			BMA2x2_ENABLE_DATA_HIGH_BW, high_bw_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_DATA_HIGH_BW__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_ENABLE_DATA_HIGH_BW_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		}
 	return com_rslt;
 }
@@ -1805,8 +1910,8 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_high_bw(u8 v_high_bw_u8)
  *	@brief This API is used to get shadow dis
  *	in the register 0x13 bit 6
  *
- *  @param  v_shadow_dis_u8 : The value of shadow dis
- *        v_shadow_dis_u8  |   result
+ *  @param  shadow_dis_u8 : The value of shadow dis
+ *        shadow_dis_u8  |   result
  *       ----------------- | ------------------
  *              0          | MSB is Locked
  *              1          | No MSB Locking
@@ -1819,22 +1924,23 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_high_bw(u8 v_high_bw_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_shadow_dis(u8 *v_shadow_dis_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_shadow_dis(u8 *shadow_dis_u8)
 {
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		return  E_BMA2x2_NULL_PTR;
 		} else {
 			/*Read the shadow dis*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_DIS_SHADOW_PROC__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_shadow_dis_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_DIS_SHADOW_PROC);
+			BMA2x2_DIS_SHADOW_PROC_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*shadow_dis_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_DIS_SHADOW_PROC);
 		}
 	return com_rslt;
 }
@@ -1842,8 +1948,8 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_shadow_dis(u8 *v_shadow_dis_u8)
  *	@brief This API is used to set shadow dis
  *	in the register 0x13 bit 6
  *
- *  @param  v_shadow_dis_u8 : The value of shadow dis
- *        v_shadow_dis_u8  |   result
+ *  @param  shadow_dis_u8 : The value of shadow dis
+ *        shadow_dis_u8  |   result
  *       ----------------- | ------------------
  *              0          | MSB is Locked
  *              1          | No MSB Locking
@@ -1856,24 +1962,25 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_shadow_dis(u8 *v_shadow_dis_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_shadow_dis(u8 v_shadow_dis_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_shadow_dis(u8 shadow_dis_u8)
 {
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		return  E_BMA2x2_NULL_PTR;
 		} else {
 			/* Write the shadow dis*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
-			(p_bma2x2->dev_addr, BMA2x2_DIS_SHADOW_PROC__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8, BMA2x2_DIS_SHADOW_PROC, v_shadow_dis_u8);
+			(p_bma2x2->dev_addr, BMA2x2_DIS_SHADOW_PROC_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8, BMA2x2_DIS_SHADOW_PROC, shadow_dis_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr, BMA2x2_DIS_SHADOW_PROC__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			(p_bma2x2->dev_addr, BMA2x2_DIS_SHADOW_PROC_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		}
 	return com_rslt;
 }
@@ -1897,16 +2004,17 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_soft_rst(void)
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
-	u8 v_data_u8 = BMA2x2_ENABLE_SOFT_RESET_VALUE;
+	u8 data_u8 = BMA2x2_ENABLE_SOFT_RESET_VALUE;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		}  else {
 			/*! To reset the sensor
-			0xB6 v_value_u8 will be written */
+			0xB6 value_u8 will be written */
 			com_rslt = p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr, BMA2x2_RST_REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			(p_bma2x2->dev_addr, BMA2x2_RST_ADDR,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		}
 	return com_rslt;
 }
@@ -1931,19 +2039,21 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_update_image(void)
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		return  E_BMA2x2_NULL_PTR;
 		} else {
 			/* Write the update image*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
-			(p_bma2x2->dev_addr, BMA2x2_UPDATE_IMAGE__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8, BMA2x2_UPDATE_IMAGE, C_BMA2x2_ONE_U8X);
+			(p_bma2x2->dev_addr, BMA2x2_UPDATE_IMAGE_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8, BMA2x2_UPDATE_IMAGE,
+			BMA2x2_GEN_READ_WRITE_LENGTH);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr, BMA2x2_UPDATE_IMAGE__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			(p_bma2x2->dev_addr, BMA2x2_UPDATE_IMAGE_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		}
 	return com_rslt;
 }
@@ -1960,8 +2070,8 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_update_image(void)
  *
  *
  *
- *  @param v_intr_type_u8: The value of interrupts
- *        v_intr_type_u8   |   result
+ *  @param intr_type_u8: The value of interrupts
+ *        intr_type_u8   |   result
  *       ----------------- | ------------------
  *              0          | BMA2x2_LOW_G_INTR
  *              1          | BMA2x2_HIGH_G_X_INTR
@@ -1976,8 +2086,8 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_update_image(void)
  *              10         | ORIENT_INT
  *              11         | FLAT_INT
  *
- *  @param v_value_u8 : The value of interrupts enable
- *        v_value_u8       |   result
+ *  @param value_u8 : The value of interrupts enable
+ *        value_u8       |   result
  *       ----------------- | ------------------
  *              0x00       | INTR_DISABLE
  *              0x01       | INTR_ENABLE
@@ -1991,113 +2101,114 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_update_image(void)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_intr_enable(u8 v_intr_type_u8,
-u8 *v_value_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_intr_enable(u8 intr_type_u8,
+u8 *value_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 		/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
-		switch (v_intr_type_u8) {
+		switch (intr_type_u8) {
 		case BMA2x2_LOW_G_INTR:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_LOW_G_INTR__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_value_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_ENABLE_LOW_G_INTR);
+			BMA2x2_ENABLE_LOW_G_INTR_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*value_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_ENABLE_LOW_G_INTR);
 		break;
 		case BMA2x2_HIGH_G_X_INTR:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_HIGH_G_X_INTR__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_value_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_ENABLE_HIGH_G_X_INTR);
+			BMA2x2_ENABLE_HIGH_G_X_INTR_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*value_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_ENABLE_HIGH_G_X_INTR);
 		break;
 		case BMA2x2_HIGH_G_Y_INTR:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_HIGH_G_Y_INTR__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_value_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_ENABLE_HIGH_G_Y_INTR);
+			BMA2x2_ENABLE_HIGH_G_Y_INTR_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*value_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_ENABLE_HIGH_G_Y_INTR);
 		break;
 		case BMA2x2_HIGH_G_Z_INTR:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_HIGH_G_Z_INTR__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_value_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_ENABLE_HIGH_G_Z_INTR);
+			BMA2x2_ENABLE_HIGH_G_Z_INTR_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*value_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_ENABLE_HIGH_G_Z_INTR);
 		break;
 		case BMA2x2_DATA_ENABLE:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_NEW_DATA_INTR__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_value_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_ENABLE_NEW_DATA_INTR);
+			BMA2x2_ENABLE_NEW_DATA_INTR_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*value_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_ENABLE_NEW_DATA_INTR);
 		break;
 		case BMA2x2_SLOPE_X_INTR:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_SLOPE_X_INTR__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_value_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_ENABLE_SLOPE_X_INTR);
+			BMA2x2_ENABLE_SLOPE_X_INTR_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*value_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_ENABLE_SLOPE_X_INTR);
 		break;
 		case BMA2x2_SLOPE_Y_INTR:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_SLOPE_Y_INTR__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_value_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_ENABLE_SLOPE_Y_INTR);
+			BMA2x2_ENABLE_SLOPE_Y_INTR_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*value_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_ENABLE_SLOPE_Y_INTR);
 		break;
 		case BMA2x2_SLOPE_Z_INTR:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_SLOPE_Z_INTR__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_value_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_ENABLE_SLOPE_Z_INTR);
+			BMA2x2_ENABLE_SLOPE_Z_INTR_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*value_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_ENABLE_SLOPE_Z_INTR);
 		break;
 		case BMA2x2_SINGLE_TAP_INTR:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_SINGLE_TAP_INTR__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_value_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_ENABLE_SINGLE_TAP_INTR);
+			BMA2x2_ENABLE_SINGLE_TAP_INTR_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*value_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_ENABLE_SINGLE_TAP_INTR);
 		break;
 		case BMA2x2_DOUBLE_TAP_INTR:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_DOUBLE_TAP_INTR__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_value_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_ENABLE_DOUBLE_TAP_INTR);
+			BMA2x2_ENABLE_DOUBLE_TAP_INTR_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*value_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_ENABLE_DOUBLE_TAP_INTR);
 		break;
 		case BMA2x2_ORIENT_INTR:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_ORIENT_INTR__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_value_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_ENABLE_ORIENT_INTR);
+			BMA2x2_ENABLE_ORIENT_INTR_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*value_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_ENABLE_ORIENT_INTR);
 		break;
 		case BMA2x2_FLAT_INTR:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_FLAT_INTR__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_value_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_ENABLE_FLAT_INTR);
+			BMA2x2_ENABLE_FLAT_INTR_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*value_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_ENABLE_FLAT_INTR);
 		break;
 		default:
 		com_rslt = E_OUT_OF_RANGE;
@@ -2119,8 +2230,8 @@ u8 *v_value_u8)
  *
  *
  *
- *  @param v_intr_type_u8: The value of interrupts
- *        v_intr_type_u8   |   result
+ *  @param intr_type_u8: The value of interrupts
+ *        intr_type_u8   |   result
  *       ----------------- | ------------------
  *              0          | BMA2x2_LOW_G_INTR
  *              1          | BMA2x2_HIGH_G_X_INTR
@@ -2135,8 +2246,8 @@ u8 *v_value_u8)
  *              10         | ORIENT_INT
  *              11         | FLAT_INT
  *
- *  @param v_value_u8 : The value of interrupts enable
- *        v_value_u8       |   result
+ *  @param value_u8 : The value of interrupts enable
+ *        value_u8       |   result
  *       ----------------- | ------------------
  *              0x00       | INTR_DISABLE
  *              0x01       | INTR_ENABLE
@@ -2150,85 +2261,86 @@ u8 *v_value_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_intr_enable(u8 v_intr_type_u8,
-u8 v_value_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_intr_enable(u8 intr_type_u8,
+u8 value_u8)
 {
 		/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
-	u8 v_data2_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
+	u8 data2_u8 = BMA2x2_INIT_VALUE;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
 		com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
-		(p_bma2x2->dev_addr, BMA2x2_INTR_ENABLE1_REG,
-		&v_data_u8, C_BMA2x2_ONE_U8X);
+		(p_bma2x2->dev_addr, BMA2x2_INTR_ENABLE1_ADDR,
+		&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		com_rslt += p_bma2x2->BMA2x2_BUS_READ_FUNC
-		(p_bma2x2->dev_addr, BMA2x2_INTR_ENABLE2_REG,
-		&v_data2_u8, C_BMA2x2_ONE_U8X);
-		v_value_u8 = v_value_u8 & C_BMA2x2_ONE_U8X;
-		switch (v_intr_type_u8) {
+		(p_bma2x2->dev_addr, BMA2x2_INTR_ENABLE2_ADDR,
+		&data2_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+		value_u8 = value_u8 & BMA2x2_GEN_READ_WRITE_LENGTH;
+		switch (intr_type_u8) {
 		case BMA2x2_LOW_G_INTR:
 			/* Low G Interrupt  */
-			v_data2_u8 = BMA2x2_SET_BITSLICE(v_data2_u8,
-			BMA2x2_ENABLE_LOW_G_INTR, v_value_u8);
+			data2_u8 = BMA2x2_SET_BITSLICE(data2_u8,
+			BMA2x2_ENABLE_LOW_G_INTR, value_u8);
 		break;
 		case BMA2x2_HIGH_G_X_INTR:
 			/* High G X Interrupt */
-			v_data2_u8 = BMA2x2_SET_BITSLICE(v_data2_u8,
-			BMA2x2_ENABLE_HIGH_G_X_INTR, v_value_u8);
+			data2_u8 = BMA2x2_SET_BITSLICE(data2_u8,
+			BMA2x2_ENABLE_HIGH_G_X_INTR, value_u8);
 		break;
 		case BMA2x2_HIGH_G_Y_INTR:
 			/* High G Y Interrupt */
-			v_data2_u8 = BMA2x2_SET_BITSLICE(v_data2_u8,
-			BMA2x2_ENABLE_HIGH_G_Y_INTR, v_value_u8);
+			data2_u8 = BMA2x2_SET_BITSLICE(data2_u8,
+			BMA2x2_ENABLE_HIGH_G_Y_INTR, value_u8);
 		break;
 		case BMA2x2_HIGH_G_Z_INTR:
 			/* High G Z Interrupt */
-			v_data2_u8 = BMA2x2_SET_BITSLICE(v_data2_u8,
-			BMA2x2_ENABLE_HIGH_G_Z_INTR, v_value_u8);
+			data2_u8 = BMA2x2_SET_BITSLICE(data2_u8,
+			BMA2x2_ENABLE_HIGH_G_Z_INTR, value_u8);
 		break;
 		case BMA2x2_DATA_ENABLE:
 			/*Data En Interrupt  */
-			v_data2_u8 = BMA2x2_SET_BITSLICE(v_data2_u8,
-			BMA2x2_ENABLE_NEW_DATA_INTR, v_value_u8);
+			data2_u8 = BMA2x2_SET_BITSLICE(data2_u8,
+			BMA2x2_ENABLE_NEW_DATA_INTR, value_u8);
 		break;
 		case BMA2x2_SLOPE_X_INTR:
 			/* Slope X Interrupt */
-			v_data_u8 = BMA2x2_SET_BITSLICE(v_data_u8,
-			BMA2x2_ENABLE_SLOPE_X_INTR, v_value_u8);
+			data_u8 = BMA2x2_SET_BITSLICE(data_u8,
+			BMA2x2_ENABLE_SLOPE_X_INTR, value_u8);
 		break;
 		case BMA2x2_SLOPE_Y_INTR:
 			/* Slope Y Interrupt */
-			v_data_u8 = BMA2x2_SET_BITSLICE(v_data_u8,
-			BMA2x2_ENABLE_SLOPE_Y_INTR, v_value_u8);
+			data_u8 = BMA2x2_SET_BITSLICE(data_u8,
+			BMA2x2_ENABLE_SLOPE_Y_INTR, value_u8);
 		break;
 		case BMA2x2_SLOPE_Z_INTR:
 			/* Slope Z Interrupt */
-			v_data_u8 = BMA2x2_SET_BITSLICE(v_data_u8,
-			BMA2x2_ENABLE_SLOPE_Z_INTR, v_value_u8);
+			data_u8 = BMA2x2_SET_BITSLICE(data_u8,
+			BMA2x2_ENABLE_SLOPE_Z_INTR, value_u8);
 		break;
 		case BMA2x2_SINGLE_TAP_INTR:
 			/* Single Tap Interrupt */
-			v_data_u8 = BMA2x2_SET_BITSLICE(v_data_u8,
-				BMA2x2_ENABLE_SINGLE_TAP_INTR, v_value_u8);
+			data_u8 = BMA2x2_SET_BITSLICE(data_u8,
+				BMA2x2_ENABLE_SINGLE_TAP_INTR, value_u8);
 		break;
 		case BMA2x2_DOUBLE_TAP_INTR:
 			/* Double Tap Interrupt */
-			v_data_u8 = BMA2x2_SET_BITSLICE(v_data_u8,
-				BMA2x2_ENABLE_DOUBLE_TAP_INTR, v_value_u8);
+			data_u8 = BMA2x2_SET_BITSLICE(data_u8,
+				BMA2x2_ENABLE_DOUBLE_TAP_INTR, value_u8);
 		break;
 		case BMA2x2_ORIENT_INTR:
 			/* Orient Interrupt  */
-			v_data_u8 = BMA2x2_SET_BITSLICE(v_data_u8,
-			BMA2x2_ENABLE_ORIENT_INTR, v_value_u8);
+			data_u8 = BMA2x2_SET_BITSLICE(data_u8,
+			BMA2x2_ENABLE_ORIENT_INTR, value_u8);
 		break;
 		case BMA2x2_FLAT_INTR:
 			/* Flat Interrupt */
-			v_data_u8 = BMA2x2_SET_BITSLICE(v_data_u8,
-			BMA2x2_ENABLE_FLAT_INTR, v_value_u8);
+			data_u8 = BMA2x2_SET_BITSLICE(data_u8,
+			BMA2x2_ENABLE_FLAT_INTR, value_u8);
 		break;
 		default:
 			com_rslt = E_OUT_OF_RANGE;
@@ -2236,11 +2348,11 @@ u8 v_value_u8)
 		}
 		/* write the interrupt*/
 		com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-		(p_bma2x2->dev_addr, BMA2x2_INTR_ENABLE1_REG,
-		&v_data_u8, C_BMA2x2_ONE_U8X);
+		(p_bma2x2->dev_addr, BMA2x2_INTR_ENABLE1_ADDR,
+		&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-		(p_bma2x2->dev_addr, BMA2x2_INTR_ENABLE2_REG,
-		&v_data2_u8, C_BMA2x2_ONE_U8X);
+		(p_bma2x2->dev_addr, BMA2x2_INTR_ENABLE2_ADDR,
+		&data2_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 	}
 	return com_rslt;
 }
@@ -2250,8 +2362,8 @@ u8 v_value_u8)
  *	in the register 0x17 bit 5
  *
  *
- *  @param v_fifo_full_u8 The value of fifo full interrupt enable
- *        v_fifo_full_u8   |   result
+ *  @param fifo_full_u8 The value of fifo full interrupt enable
+ *        fifo_full_u8   |   result
  *       ----------------- | ------------------
  *              0x00       | INTR_DISABLE
  *              0x01       | INTR_ENABLE
@@ -2264,12 +2376,13 @@ u8 v_value_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_intr_fifo_full(u8 *v_fifo_full_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_intr_fifo_full(u8 *fifo_full_u8)
 {
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
@@ -2277,9 +2390,9 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_intr_fifo_full(u8 *v_fifo_full_u8)
 			/* Read fifo full interrupt */
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_INTR_FIFO_FULL_ENABLE_INTR__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_fifo_full_u8 = BMA2x2_GET_BITSLICE(v_data_u8,
+			BMA2x2_INTR_FIFO_FULL_ENABLE_INTR_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*fifo_full_u8 = BMA2x2_GET_BITSLICE(data_u8,
 			BMA2x2_INTR_FIFO_FULL_ENABLE_INTR);
 		}
 	return com_rslt;
@@ -2290,8 +2403,8 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_intr_fifo_full(u8 *v_fifo_full_u8)
  *	in the register 0x17 bit 5
  *
  *
- *  @param v_fifo_full_u8 The value of fifo full interrupt enable
- *        v_fifo_full_u8   |   result
+ *  @param fifo_full_u8 The value of fifo full interrupt enable
+ *        fifo_full_u8   |   result
  *       ----------------- | ------------------
  *              0x00       | INTR_DISABLE
  *              0x01       | INTR_ENABLE
@@ -2304,29 +2417,30 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_intr_fifo_full(u8 *v_fifo_full_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_intr_fifo_full(u8 v_fifo_full_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_intr_fifo_full(u8 fifo_full_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 		/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
-		if (v_fifo_full_u8 < C_BMA2x2_TWO_U8X) {
+		if (fifo_full_u8 < BMA2x2_FIFO_MODE_STATUS_RANGE) {
 			/* Write fifo full interrupt */
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_INTR_FIFO_FULL_ENABLE_INTR__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8, BMA2x2_INTR_FIFO_FULL_ENABLE_INTR,
-			v_fifo_full_u8);
+			BMA2x2_INTR_FIFO_FULL_ENABLE_INTR_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8, BMA2x2_INTR_FIFO_FULL_ENABLE_INTR,
+			fifo_full_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_INTR_FIFO_FULL_ENABLE_INTR__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_INTR_FIFO_FULL_ENABLE_INTR_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		} else {
 		com_rslt = E_OUT_OF_RANGE;
 		}
@@ -2341,8 +2455,8 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_intr_fifo_full(u8 v_fifo_full_u8)
  *
  *
  *
- *  @param v_fifo_wm_u8 : the value FIFO Water Mark
- *        v_fifo_wm_u8     |   result
+ *  @param fifo_wm_u8 : the value FIFO Water Mark
+ *        fifo_wm_u8     |   result
  *       ----------------- | ------------------
  *              0x00       | INTR_DISABLE
  *              0x01       | INTR_ENABLE
@@ -2355,12 +2469,13 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_intr_fifo_full(u8 v_fifo_full_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_intr_fifo_wm(u8 *v_fifo_wm_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_intr_fifo_wm(u8 *fifo_wm_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 		/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
@@ -2368,10 +2483,10 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_intr_fifo_wm(u8 *v_fifo_wm_u8)
 			/* Read the fifo water mark*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_INTR_FIFO_WM_ENABLE_INTR__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_fifo_wm_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_INTR_FIFO_WM_ENABLE_INTR);
+			BMA2x2_INTR_FIFO_WM_ENABLE_INTR_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*fifo_wm_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_INTR_FIFO_WM_ENABLE_INTR);
 		}
 	return com_rslt;
 }
@@ -2383,8 +2498,8 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_intr_fifo_wm(u8 *v_fifo_wm_u8)
  *
  *
  *
- *  @param v_fifo_wm_u8 : the value FIFO Water Mark
- *        v_fifo_wm_u8     |   result
+ *  @param fifo_wm_u8 : the value FIFO Water Mark
+ *        fifo_wm_u8     |   result
  *       ----------------- | ------------------
  *              0x00       | INTR_DISABLE
  *              0x01       | INTR_ENABLE
@@ -2397,29 +2512,30 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_intr_fifo_wm(u8 *v_fifo_wm_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_intr_fifo_wm(u8 v_fifo_wm_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_intr_fifo_wm(u8 fifo_wm_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 		/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
-		if (v_fifo_wm_u8 < C_BMA2x2_TWO_U8X) {
+		if (fifo_wm_u8 < BMA2x2_FIFO_MODE_STATUS_RANGE) {
 			/* Write the fifo water mark interrupt*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_INTR_FIFO_WM_ENABLE_INTR__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8, BMA2x2_INTR_FIFO_WM_ENABLE_INTR,
-			v_fifo_wm_u8);
+			BMA2x2_INTR_FIFO_WM_ENABLE_INTR_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8, BMA2x2_INTR_FIFO_WM_ENABLE_INTR,
+			fifo_wm_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_INTR_FIFO_WM_ENABLE_INTR__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_INTR_FIFO_WM_ENABLE_INTR_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		} else {
 		com_rslt = E_OUT_OF_RANGE;
 		}
@@ -2432,16 +2548,16 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_intr_fifo_wm(u8 v_fifo_wm_u8)
  * enable xyz interrupt in the register 0x18 bit from 0 to 3
  *
  *
- *  @param  v_channel_u8 : The value of slow/no motion select
- *        v_channel_u8     |   result
+ *  @param  channel_u8 : The value of slow/no motion select
+ *        channel_u8     |   result
  *       ----------------- | ------------------
  *              0          | BMA2x2_ACCEL_SLOW_NO_MOTION_ENABLE_X
  *              1          | BMA2x2_ACCEL_SLOW_NO_MOTION_ENABLE_Y
  *              2          | BMA2x2_ACCEL_SLOW_NO_MOTION_ENABLE_Z
  *              3          | BMA2x2_ACCEL_SLOW_NO_MOTION_ENABLE_SEL
  *
- *	@param v_slow_no_motion_u8 : The value of slow no motion interrupt enable
- *        v_slow_no_motion_u8     |   result
+ *	@param slow_no_motion_u8 : The value of slow no motion interrupt enable
+ *        slow_no_motion_u8     |   result
  *       ------------------------ | ------------------
  *              0x00              | INTR_DISABLE
  *              0x01              | INTR_ENABLE
@@ -2453,50 +2569,51 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_intr_fifo_wm(u8 v_fifo_wm_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_slow_no_motion(u8 v_channel_u8,
-u8 *v_slow_no_motion_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_slow_no_motion(u8 channel_u8,
+u8 *slow_no_motion_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 		/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
 		/* Read the slow no motion interrupt */
-		switch (v_channel_u8) {
+		switch (channel_u8) {
 		case BMA2x2_SLOW_NO_MOTION_ENABLE_X:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_INTR_SLOW_NO_MOTION_ENABLE_X_INTR__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_slow_no_motion_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_INTR_SLOW_NO_MOTION_ENABLE_X_INTR);
+			BMA2x2_INTR_SLOW_NO_MOTION_ENABLE_X_INTR_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*slow_no_motion_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_INTR_SLOW_NO_MOTION_ENABLE_X_INTR);
 		break;
 		case BMA2x2_SLOW_NO_MOTION_ENABLE_Y:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_INTR_SLOW_NO_MOTION_ENABLE_Y_INTR__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_slow_no_motion_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_INTR_SLOW_NO_MOTION_ENABLE_Y_INTR);
+			BMA2x2_INTR_SLOW_NO_MOTION_ENABLE_Y_INTR_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*slow_no_motion_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_INTR_SLOW_NO_MOTION_ENABLE_Y_INTR);
 		break;
 		case BMA2x2_SLOW_NO_MOTION_ENABLE_Z:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_INTR_SLOW_NO_MOTION_ENABLE_Z_INTR__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_slow_no_motion_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_INTR_SLOW_NO_MOTION_ENABLE_Z_INTR);
+			BMA2x2_INTR_SLOW_NO_MOTION_ENABLE_Z_INTR_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*slow_no_motion_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_INTR_SLOW_NO_MOTION_ENABLE_Z_INTR);
 		break;
 		case BMA2x2_SLOW_NO_MOTION_ENABLE_SELECT:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_INTR_SLOW_NO_MOTION_ENABLE_SELECT_INTR__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_slow_no_motion_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8,
+			BMA2x2_INTR_SLOW_NO_MOTION_ENABLE_SELECT_INTR_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*slow_no_motion_u8 = BMA2x2_GET_BITSLICE
+			(data_u8,
 			BMA2x2_INTR_SLOW_NO_MOTION_ENABLE_SELECT_INTR);
 		break;
 		default:
@@ -2512,16 +2629,17 @@ u8 *v_slow_no_motion_u8)
  * enable xyz interrupt in the register 0x18 bit from 0 to 3
  *
  *
- *  @param  v_channel_u8 : The value of slow/no motion select
- *        v_channel_u8     |   result
+ *  @param  channel_u8 : The value of slow/no motion select
+ *        channel_u8     |   result
  *       ----------------- | ------------------
  *              0          | BMA2x2_ACCEL_SLOW_NO_MOTION_ENABLE_X
  *              1          | BMA2x2_ACCEL_SLOW_NO_MOTION_ENABLE_Y
  *              2          | BMA2x2_ACCEL_SLOW_NO_MOTION_ENABLE_Z
  *              3          | BMA2x2_ACCEL_SLOW_NO_MOTION_ENABLE_SEL
  *
- *	@param v_slow_no_motion_u8 : The value of slow no motion interrupt enable
- *        v_slow_no_motion_u8     |   result
+ *	@param slow_no_motion_u8 : The value of slow no motion
+ *      interrupt enable
+ *        slow_no_motion_u8     |   result
  *       ------------------------ | ------------------
  *              0x00              | INTR_DISABLE
  *              0x01              | INTR_ENABLE
@@ -2533,74 +2651,75 @@ u8 *v_slow_no_motion_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_slow_no_motion(u8 v_channel_u8,
-u8 v_slow_no_motion_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_slow_no_motion(u8 channel_u8,
+u8 slow_no_motion_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 		/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
 		/* Write the slow no motion interrupt*/
-		switch (v_channel_u8) {
+		switch (channel_u8) {
 		case BMA2x2_SLOW_NO_MOTION_ENABLE_X:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_INTR_SLOW_NO_MOTION_ENABLE_X_INTR__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8,
+			BMA2x2_INTR_SLOW_NO_MOTION_ENABLE_X_INTR_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8,
 			BMA2x2_INTR_SLOW_NO_MOTION_ENABLE_X_INTR,
-			v_slow_no_motion_u8);
+			slow_no_motion_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_INTR_SLOW_NO_MOTION_ENABLE_X_INTR__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_INTR_SLOW_NO_MOTION_ENABLE_X_INTR_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
 		case BMA2x2_SLOW_NO_MOTION_ENABLE_Y:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_INTR_SLOW_NO_MOTION_ENABLE_Y_INTR__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8,
+			BMA2x2_INTR_SLOW_NO_MOTION_ENABLE_Y_INTR_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8,
 			BMA2x2_INTR_SLOW_NO_MOTION_ENABLE_Y_INTR,
-			v_slow_no_motion_u8);
+			slow_no_motion_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_INTR_SLOW_NO_MOTION_ENABLE_Y_INTR__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_INTR_SLOW_NO_MOTION_ENABLE_Y_INTR_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
 		case BMA2x2_SLOW_NO_MOTION_ENABLE_Z:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_INTR_SLOW_NO_MOTION_ENABLE_Z_INTR__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8,
+			BMA2x2_INTR_SLOW_NO_MOTION_ENABLE_Z_INTR_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8,
 			BMA2x2_INTR_SLOW_NO_MOTION_ENABLE_Z_INTR,
-			v_slow_no_motion_u8);
+			slow_no_motion_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_INTR_SLOW_NO_MOTION_ENABLE_Z_INTR__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_INTR_SLOW_NO_MOTION_ENABLE_Z_INTR_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
 		case BMA2x2_SLOW_NO_MOTION_ENABLE_SELECT:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_INTR_SLOW_NO_MOTION_ENABLE_SELECT_INTR__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8,
+			BMA2x2_INTR_SLOW_NO_MOTION_ENABLE_SELECT_INTR_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8,
 			BMA2x2_INTR_SLOW_NO_MOTION_ENABLE_SELECT_INTR,
-			v_slow_no_motion_u8);
+			slow_no_motion_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_INTR_SLOW_NO_MOTION_ENABLE_SELECT_INTR__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_INTR_SLOW_NO_MOTION_ENABLE_SELECT_INTR_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
 		default:
 			com_rslt = E_OUT_OF_RANGE;
@@ -2618,14 +2737,14 @@ u8 v_slow_no_motion_u8)
  *
  *
  *
- * @param v_channel_u8 : The value of low interrupt selection channel
- *        v_channel_u8     |   result
+ * @param channel_u8 : The value of low interrupt selection channel
+ *        channel_u8     |   result
  *       ----------------- | ------------------
  *              0          | BMA2x2_ACCEL_INTR1_LOW_G
  *              1          | BMA2x2_ACCEL_INTR2_LOW_G
  *
- * @param v_intr_low_g_u8 : the value of low_g interrupt
- *        v_intr_low_u8           |   result
+ * @param intr_low_g_u8 : the value of low_g interrupt
+ *        intr_low_u8           |   result
  *       ------------------------ | ------------------
  *              0x00              | INTR_DISABLE
  *              0x01              | INTR_ENABLE
@@ -2638,34 +2757,35 @@ u8 v_slow_no_motion_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_intr_low_g(u8 v_channel_u8,
-u8 *v_intr_low_g_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_intr_low_g(u8 channel_u8,
+u8 *intr_low_g_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
-		switch (v_channel_u8) {
+		switch (channel_u8) {
 		/* Read the low_g interrupt*/
 		case BMA2x2_INTR1_LOW_G:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_INTR1_PAD_LOW_G__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_intr_low_g_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_ENABLE_INTR1_PAD_LOW_G);
+			BMA2x2_ENABLE_INTR1_PAD_LOW_G_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*intr_low_g_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_ENABLE_INTR1_PAD_LOW_G);
 		break;
 		case BMA2x2_INTR2_LOW_G:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_INTR2_PAD_LOW_G__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_intr_low_g_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_ENABLE_INTR2_PAD_LOW_G);
+			BMA2x2_ENABLE_INTR2_PAD_LOW_G_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*intr_low_g_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_ENABLE_INTR2_PAD_LOW_G);
 		break;
 		default:
 			com_rslt = E_OUT_OF_RANGE;
@@ -2683,14 +2803,14 @@ u8 *v_intr_low_g_u8)
  *
  *
  *
- * @param v_channel_u8 : The value of low interrupt selection channel
- *        v_channel_u8     |   result
+ * @param channel_u8 : The value of low interrupt selection channel
+ *        channel_u8     |   result
  *       ----------------- | ------------------
  *              0          | BMA2x2_ACCEL_INTR1_LOW_G
  *              1          | BMA2x2_ACCEL_INTR2_LOW_G
  *
- * @param v_intr_low_u8 : the value of low_g interrupt
- *        v_intr_low_u8           |   result
+ * @param intr_low_u8 : the value of low_g interrupt
+ *        intr_low_u8           |   result
  *       ------------------------ | ------------------
  *              0x00              | INTR_DISABLE
  *              0x01              | INTR_ENABLE
@@ -2703,42 +2823,43 @@ u8 *v_intr_low_g_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_intr_low_g(u8 v_channel_u8,
-u8 v_intr_low_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_intr_low_g(u8 channel_u8,
+u8 intr_low_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 		/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
-		switch (v_channel_u8) {
+		switch (channel_u8) {
 		case BMA2x2_INTR1_LOW_G:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_INTR1_PAD_LOW_G__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE(v_data_u8,
-			BMA2x2_ENABLE_INTR1_PAD_LOW_G, v_intr_low_u8);
+			BMA2x2_ENABLE_INTR1_PAD_LOW_G_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE(data_u8,
+			BMA2x2_ENABLE_INTR1_PAD_LOW_G, intr_low_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_INTR1_PAD_LOW_G__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_ENABLE_INTR1_PAD_LOW_G_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
 		case BMA2x2_INTR2_LOW_G:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_INTR2_PAD_LOW_G__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8, BMA2x2_ENABLE_INTR2_PAD_LOW_G,
-			v_intr_low_u8);
+			BMA2x2_ENABLE_INTR2_PAD_LOW_G_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8, BMA2x2_ENABLE_INTR2_PAD_LOW_G,
+			intr_low_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_INTR2_PAD_LOW_G__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_ENABLE_INTR2_PAD_LOW_G_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
 		default:
 			com_rslt = E_OUT_OF_RANGE;
@@ -2754,14 +2875,14 @@ u8 v_intr_low_u8)
  * @note INTR2_high_g -> register 0x1B bit 1
  *
  *
- *  @param  v_channel_u8: The value of high_g interrupt selection
- *        v_channel_u8     |   result
+ *  @param  channel_u8: The value of high_g interrupt selection
+ *        channel_u8     |   result
  *       ----------------- | ------------------
  *              0          | BMA2x2_ACCEL_INTR1_HIGH_G
  *              1          | BMA2x2_ACCEL_INTR2_HIGH_G
  *
- * @param v_intr_high_g_u8 : the value of high_g interrupt
- *        v_intr_high_g_u8        |   result
+ * @param intr_high_g_u8 : the value of high_g interrupt
+ *        intr_high_g_u8        |   result
  *       ------------------------ | ------------------
  *              0x00              | INTR_DISABLE
  *              0x01              | INTR_ENABLE
@@ -2773,34 +2894,35 @@ u8 v_intr_low_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_intr_high_g(u8 v_channel_u8,
-u8 *v_intr_high_g_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_intr_high_g(u8 channel_u8,
+u8 *intr_high_g_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
-		switch (v_channel_u8) {
+		switch (channel_u8) {
 		/* read the high_g interrupt*/
 		case BMA2x2_INTR1_HIGH_G:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_INTR1_PAD_HIGH_G__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_intr_high_g_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_ENABLE_INTR1_PAD_HIGH_G);
+			BMA2x2_ENABLE_INTR1_PAD_HIGH_G_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*intr_high_g_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_ENABLE_INTR1_PAD_HIGH_G);
 		break;
 		case BMA2x2_INTR2_HIGH_G:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_INTR2_PAD_HIGH_G__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_intr_high_g_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_ENABLE_INTR2_PAD_HIGH_G);
+			BMA2x2_ENABLE_INTR2_PAD_HIGH_G_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*intr_high_g_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_ENABLE_INTR2_PAD_HIGH_G);
 		break;
 		default:
 		com_rslt = E_OUT_OF_RANGE;
@@ -2816,14 +2938,14 @@ u8 *v_intr_high_g_u8)
  * @note INTR2_high_g -> register 0x1B bit 1
  *
  *
- *  @param  v_channel_u8: The value of high_g interrupt selection
- *        v_channel_u8     |   result
+ *  @param  channel_u8: The value of high_g interrupt selection
+ *        channel_u8     |   result
  *       ----------------- | ------------------
  *              0          | BMA2x2_ACCEL_INTR1_HIGH_G
  *              1          | BMA2x2_ACCEL_INTR2_HIGH_G
  *
- * @param v_intr_high_g_u8 : the value of high_g interrupt
- *        v_intr_high_g_u8        |   result
+ * @param intr_high_g_u8 : the value of high_g interrupt
+ *        intr_high_g_u8        |   result
  *       ------------------------ | ------------------
  *              0x00              | INTR_DISABLE
  *              0x01              | INTR_ENABLE
@@ -2835,44 +2957,45 @@ u8 *v_intr_high_g_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_intr_high_g(u8 v_channel_u8,
-u8 v_intr_high_g_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_intr_high_g(u8 channel_u8,
+u8 intr_high_g_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
 		/* write the high_g interrupt*/
-		switch (v_channel_u8) {
+		switch (channel_u8) {
 		case BMA2x2_INTR1_HIGH_G:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_INTR1_PAD_HIGH_G__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8, BMA2x2_ENABLE_INTR1_PAD_HIGH_G,
-			v_intr_high_g_u8);
+			BMA2x2_ENABLE_INTR1_PAD_HIGH_G_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8, BMA2x2_ENABLE_INTR1_PAD_HIGH_G,
+			intr_high_g_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_INTR1_PAD_HIGH_G__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_ENABLE_INTR1_PAD_HIGH_G_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
 		case BMA2x2_INTR2_HIGH_G:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_INTR2_PAD_HIGH_G__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8, BMA2x2_ENABLE_INTR2_PAD_HIGH_G,
-			v_intr_high_g_u8);
+			BMA2x2_ENABLE_INTR2_PAD_HIGH_G_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8, BMA2x2_ENABLE_INTR2_PAD_HIGH_G,
+			intr_high_g_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_INTR2_PAD_HIGH_G__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_ENABLE_INTR2_PAD_HIGH_G_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
 		default:
 		com_rslt = E_OUT_OF_RANGE;
@@ -2889,14 +3012,14 @@ u8 v_intr_high_g_u8)
  *
  *
  *
- * @param v_channel_u8: the value of slope channel select
- *        v_channel_u8     |   result
+ * @param channel_u8: the value of slope channel select
+ *        channel_u8     |   result
  *       ----------------- | ------------------
  *              0          | BMA2x2_ACCEL_INTR1_SLOPE
  *              1          | BMA2x2_ACCEL_INTR2_SLOPE
  *
- * @param v_intr_slope_u8 : The slope value enable value
- *        v_intr_slope_u8         |   result
+ * @param intr_slope_u8 : The slope value enable value
+ *        intr_slope_u8         |   result
  *       ------------------------ | ------------------
  *              0x00              | INTR_DISABLE
  *              0x01              | INTR_ENABLE
@@ -2909,34 +3032,35 @@ u8 v_intr_high_g_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_intr_slope(u8 v_channel_u8,
-u8 *v_intr_slope_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_intr_slope(u8 channel_u8,
+u8 *intr_slope_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 		/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
 		/* Read the slope value */
-		switch (v_channel_u8) {
+		switch (channel_u8) {
 		case BMA2x2_INTR1_SLOPE:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_INTR1_PAD_SLOPE__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_intr_slope_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_ENABLE_INTR1_PAD_SLOPE);
+			BMA2x2_ENABLE_INTR1_PAD_SLOPE_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*intr_slope_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_ENABLE_INTR1_PAD_SLOPE);
 		break;
 		case BMA2x2_INTR2_SLOPE:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_INTR2_PAD_SLOPE__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_intr_slope_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_ENABLE_INTR2_PAD_SLOPE);
+			BMA2x2_ENABLE_INTR2_PAD_SLOPE_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*intr_slope_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_ENABLE_INTR2_PAD_SLOPE);
 		break;
 		default:
 		com_rslt = E_OUT_OF_RANGE;
@@ -2953,14 +3077,14 @@ u8 *v_intr_slope_u8)
  *
  *
  *
- * @param v_channel_u8: the value of slope channel select
- *        v_channel_u8     |   result
+ * @param channel_u8: the value of slope channel select
+ *        channel_u8     |   result
  *       ----------------- | ------------------
  *              0          | BMA2x2_ACCEL_INTR1_SLOPE
  *              1          | BMA2x2_ACCEL_INTR2_SLOPE
  *
- * @param v_intr_slope_u8 : The slope value enable value
- *        v_intr_slope_u8         |   result
+ * @param intr_slope_u8 : The slope value enable value
+ *        intr_slope_u8         |   result
  *       ------------------------ | ------------------
  *              0x00              | INTR_DISABLE
  *              0x01              | INTR_ENABLE
@@ -2973,44 +3097,45 @@ u8 *v_intr_slope_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_intr_slope(u8 v_channel_u8,
-u8 v_intr_slope_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_intr_slope(u8 channel_u8,
+u8 intr_slope_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 		/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
-		switch (v_channel_u8) {
+		switch (channel_u8) {
 		/* Write the slope value */
 		case BMA2x2_INTR1_SLOPE:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_INTR1_PAD_SLOPE__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8, BMA2x2_ENABLE_INTR1_PAD_SLOPE,
-			v_intr_slope_u8);
+			BMA2x2_ENABLE_INTR1_PAD_SLOPE_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8, BMA2x2_ENABLE_INTR1_PAD_SLOPE,
+			intr_slope_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_INTR1_PAD_SLOPE__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_ENABLE_INTR1_PAD_SLOPE_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
 		case BMA2x2_INTR2_SLOPE:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_INTR2_PAD_SLOPE__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8, BMA2x2_ENABLE_INTR2_PAD_SLOPE,
-			v_intr_slope_u8);
+			BMA2x2_ENABLE_INTR2_PAD_SLOPE_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8, BMA2x2_ENABLE_INTR2_PAD_SLOPE,
+			intr_slope_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_INTR2_PAD_SLOPE__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_ENABLE_INTR2_PAD_SLOPE_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
 		default:
 			com_rslt = E_OUT_OF_RANGE;
@@ -3029,14 +3154,14 @@ u8 v_intr_slope_u8)
  *
  *
  *
- *  @param v_channel_u8 : The value of slow/no motion selection
- *        v_channel_u8     |   result
+ *  @param channel_u8 : The value of slow/no motion selection
+ *        channel_u8     |   result
  *       ----------------- | ------------------
  *              0          | BMA2x2_INTR1_SLOW_NO_MOTION
  *              1          | BMA2x2_INTR2_SLOW_NO_MOTION
  *
- *  @param v_intr_slow_no_motion_u8:  the slow_no_motion enable value
- *       v_intr_slow_no_motion_u8 |   result
+ *  @param intr_slow_no_motion_u8:  the slow_no_motion enable value
+ *       intr_slow_no_motion_u8 |   result
  *       ------------------------ | ------------------
  *              0x00              | INTR_DISABLE
  *              0x01              | INTR_ENABLE
@@ -3048,34 +3173,35 @@ u8 v_intr_slope_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_intr_slow_no_motion(u8 v_channel_u8,
-u8 *v_intr_slow_no_motion_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_intr_slow_no_motion(u8 channel_u8,
+u8 *intr_slow_no_motion_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 		/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
 		/* Read the slow no motion interrupt */
-		switch (v_channel_u8) {
+		switch (channel_u8) {
 		case BMA2x2_INTR1_SLOW_NO_MOTION:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_INTR1_PAD_SLOW_NO_MOTION__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_intr_slow_no_motion_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_ENABLE_INTR1_PAD_SLOW_NO_MOTION);
+			BMA2x2_ENABLE_INTR1_PAD_SLOW_NO_MOTION_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*intr_slow_no_motion_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_ENABLE_INTR1_PAD_SLOW_NO_MOTION);
 		break;
 		case BMA2x2_INTR2_SLOW_NO_MOTION:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_INTR2_PAD_SLOW_NO_MOTION__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_intr_slow_no_motion_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_ENABLE_INTR2_PAD_SLOW_NO_MOTION);
+			BMA2x2_ENABLE_INTR2_PAD_SLOW_NO_MOTION_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*intr_slow_no_motion_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_ENABLE_INTR2_PAD_SLOW_NO_MOTION);
 		break;
 		default:
 			com_rslt = E_OUT_OF_RANGE;
@@ -3094,14 +3220,14 @@ u8 *v_intr_slow_no_motion_u8)
  *
  *
  *
- *  @param v_channel_u8 : The value of slow/no motion selection
- *        v_channel_u8     |   result
+ *  @param channel_u8 : The value of slow/no motion selection
+ *        channel_u8     |   result
  *       ----------------- | ------------------
  *              0          | BMA2x2_INTR1_SLOW_NO_MOTION
  *              1          | BMA2x2_INTR2_SLOW_NO_MOTION
  *
- *  @param v_intr_slow_no_motion_u8:  the slow_no_motion enable value
- *       v_intr_slow_no_motion_u8 |   result
+ *  @param intr_slow_no_motion_u8:  the slow_no_motion enable value
+ *       intr_slow_no_motion_u8 |   result
  *       ------------------------ | ------------------
  *              0x00              | INTR_DISABLE
  *              0x01              | INTR_ENABLE
@@ -3113,46 +3239,47 @@ u8 *v_intr_slow_no_motion_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_intr_slow_no_motion(u8 v_channel_u8,
-u8 v_intr_slow_no_motion_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_intr_slow_no_motion(u8 channel_u8,
+u8 intr_slow_no_motion_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
-		switch (v_channel_u8) {
+		switch (channel_u8) {
 		/* Write the slow no motion interrupt */
 		case BMA2x2_INTR1_SLOW_NO_MOTION:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_INTR1_PAD_SLOW_NO_MOTION__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8,
+			BMA2x2_ENABLE_INTR1_PAD_SLOW_NO_MOTION_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8,
 			BMA2x2_ENABLE_INTR1_PAD_SLOW_NO_MOTION,
-			v_intr_slow_no_motion_u8);
+			intr_slow_no_motion_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_INTR1_PAD_SLOW_NO_MOTION__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_ENABLE_INTR1_PAD_SLOW_NO_MOTION_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
 		case BMA2x2_INTR2_SLOW_NO_MOTION:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_INTR2_PAD_SLOW_NO_MOTION__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8,
+			BMA2x2_ENABLE_INTR2_PAD_SLOW_NO_MOTION_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8,
 			BMA2x2_ENABLE_INTR2_PAD_SLOW_NO_MOTION,
-			v_intr_slow_no_motion_u8);
+			intr_slow_no_motion_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_INTR2_PAD_SLOW_NO_MOTION__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_ENABLE_INTR2_PAD_SLOW_NO_MOTION_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
 		default:
 			com_rslt = E_OUT_OF_RANGE;
@@ -3171,14 +3298,14 @@ u8 v_intr_slow_no_motion_u8)
  *
  *
  *
- *  @param v_channel_u8: The value of double tap selection
- *        v_channel_u8     |   result
+ *  @param channel_u8: The value of double tap selection
+ *        channel_u8     |   result
  *       ----------------- | ------------------
  *              0          | BMA2x2_ACCEL_INTR1_DOUBLE_TAP
  *              1          | BMA2x2_ACCEL_INTR2_DOUBLE_TAP
  *
- *	@param v_intr_double_tap_u8: The double tap interrupt enable value
- *       v_intr_double_tap_u8     |   result
+ *	@param intr_double_tap_u8: The double tap interrupt enable value
+ *       intr_double_tap_u8     |   result
  *       ------------------------ | ------------------
  *              0x00              | INTR_DISABLE
  *              0x01              | INTR_ENABLE
@@ -3189,34 +3316,35 @@ u8 v_intr_slow_no_motion_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_intr_double_tap(u8 v_channel_u8,
-u8 *v_intr_double_tap_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_intr_double_tap(u8 channel_u8,
+u8 *intr_double_tap_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 		/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
 		/* read the double tap*/
-		switch (v_channel_u8) {
+		switch (channel_u8) {
 		case BMA2x2_INTR1_DOUBLE_TAP:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_INTR1_PAD_DOUBLE_TAP__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_intr_double_tap_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_ENABLE_INTR1_PAD_DOUBLE_TAP);
+			BMA2x2_ENABLE_INTR1_PAD_DOUBLE_TAP_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*intr_double_tap_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_ENABLE_INTR1_PAD_DOUBLE_TAP);
 		break;
 		case BMA2x2_INTR2_DOUBLE_TAP:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_INTR2_PAD_DOUBLE_TAP__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_intr_double_tap_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_ENABLE_INTR2_PAD_DOUBLE_TAP);
+			BMA2x2_ENABLE_INTR2_PAD_DOUBLE_TAP_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*intr_double_tap_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_ENABLE_INTR2_PAD_DOUBLE_TAP);
 		break;
 		default:
 			com_rslt = E_OUT_OF_RANGE;
@@ -3235,14 +3363,14 @@ u8 *v_intr_double_tap_u8)
  *
  *
  *
- *  @param v_channel_u8: The value of double tap selection
- *        v_channel_u8     |   result
+ *  @param channel_u8: The value of double tap selection
+ *        channel_u8     |   result
  *       ----------------- | ------------------
  *              0          | BMA2x2_ACCEL_INTR1_DOUBLE_TAP
  *              1          | BMA2x2_ACCEL_INTR2_DOUBLE_TAP
  *
- *	@param v_intr_double_tap_u8: The double tap interrupt enable value
- *       v_intr_double_tap_u8     |   result
+ *	@param intr_double_tap_u8: The double tap interrupt enable value
+ *       intr_double_tap_u8     |   result
  *       ------------------------ | ------------------
  *              0x00              | INTR_DISABLE
  *              0x01              | INTR_ENABLE
@@ -3253,46 +3381,47 @@ u8 *v_intr_double_tap_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_intr_double_tap(u8 v_channel_u8,
-u8 v_intr_double_tap_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_intr_double_tap(u8 channel_u8,
+u8 intr_double_tap_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 		/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
-		switch (v_channel_u8) {
+		switch (channel_u8) {
 		/* write the double tap*/
 		case BMA2x2_INTR1_DOUBLE_TAP:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_INTR1_PAD_DOUBLE_TAP__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8,
+			BMA2x2_ENABLE_INTR1_PAD_DOUBLE_TAP_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8,
 			BMA2x2_ENABLE_INTR1_PAD_DOUBLE_TAP,
-			v_intr_double_tap_u8);
+			intr_double_tap_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_INTR1_PAD_DOUBLE_TAP__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_ENABLE_INTR1_PAD_DOUBLE_TAP_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
 		case BMA2x2_INTR2_DOUBLE_TAP:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_INTR2_PAD_DOUBLE_TAP__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8,
+			BMA2x2_ENABLE_INTR2_PAD_DOUBLE_TAP_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8,
 			BMA2x2_ENABLE_INTR2_PAD_DOUBLE_TAP,
-			v_intr_double_tap_u8);
+			intr_double_tap_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_INTR2_PAD_DOUBLE_TAP__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_ENABLE_INTR2_PAD_DOUBLE_TAP_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
 		default:
 		com_rslt = E_OUT_OF_RANGE;
@@ -3305,18 +3434,18 @@ u8 v_intr_double_tap_u8)
  * @brief This API is used to get
  * the interrupt enable of single tap
  * interrupt in the register 0x19 and 0x1B
- * @note INTR1_sigle_tap -> register 0x19 bit 5
- * @note INTR2_sigle_tap -> register 0x1B bit 5
+ * @note INTR1_single_tap -> register 0x19 bit 5
+ * @note INTR2_single_tap -> register 0x1B bit 5
  *
  *
- *  @param v_channel_u8: The value of single tap interrupt select
- *        v_channel_u8     |   result
+ *  @param channel_u8: The value of single tap interrupt select
+ *        channel_u8     |   result
  *       ----------------- | ------------------
  *              0          | BMA2x2_ACCEL_INTR1_SINGLE_TAP
  *              1          | BMA2x2_ACCEL_INTR2_SINGLE_TAP
  *
- *  @param v_intr_single_tap_u8: The single tap interrupt enable value
- *       v_intr_single_tap_u8     |   result
+ *  @param intr_single_tap_u8: The single tap interrupt enable value
+ *       intr_single_tap_u8     |   result
  *       ------------------------ | ------------------
  *              0x00              | INTR_DISABLE
  *              0x01              | INTR_ENABLE
@@ -3328,34 +3457,35 @@ u8 v_intr_double_tap_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_intr_single_tap(u8 v_channel_u8,
-u8 *v_intr_single_tap_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_intr_single_tap(u8 channel_u8,
+u8 *intr_single_tap_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 		/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
-		switch (v_channel_u8) {
+		switch (channel_u8) {
 		/* Read the single tap value*/
 		case BMA2x2_INTR1_SINGLE_TAP:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_INTR1_PAD_SINGLE_TAP__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_intr_single_tap_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_ENABLE_INTR1_PAD_SINGLE_TAP);
+			BMA2x2_ENABLE_INTR1_PAD_SINGLE_TAP_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*intr_single_tap_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_ENABLE_INTR1_PAD_SINGLE_TAP);
 		break;
 		case BMA2x2_INTR2_SINGLE_TAP:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_INTR2_PAD_SINGLE_TAP__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_intr_single_tap_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_ENABLE_INTR2_PAD_SINGLE_TAP);
+			BMA2x2_ENABLE_INTR2_PAD_SINGLE_TAP_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*intr_single_tap_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_ENABLE_INTR2_PAD_SINGLE_TAP);
 		break;
 		default:
 			com_rslt = E_OUT_OF_RANGE;
@@ -3368,18 +3498,18 @@ u8 *v_intr_single_tap_u8)
  * @brief This API is used to set
  * the interrupt enable of single tap
  * interrupt in the register 0x19 and 0x1B
- * @note INTR1_sigle_tap -> register 0x19 bit 5
- * @note INTR2_sigle_tap -> register 0x1B bit 5
+ * @note INTR1_single_tap -> register 0x19 bit 5
+ * @note INTR2_single_tap -> register 0x1B bit 5
  *
  *
- *  @param v_channel_u8: The value of single tap interrupt select
- *        v_channel_u8     |   result
+ *  @param channel_u8: The value of single tap interrupt select
+ *        channel_u8     |   result
  *       ----------------- | ------------------
  *              0          | BMA2x2_ACCEL_INTR1_SINGLE_TAP
  *              1          | BMA2x2_ACCEL_INTR2_SINGLE_TAP
  *
- *  @param v_intr_single_tap_u8: The single tap interrupt enable value
- *       v_intr_single_tap_u8     |   result
+ *  @param intr_single_tap_u8: The single tap interrupt enable value
+ *       intr_single_tap_u8     |   result
  *       ------------------------ | ------------------
  *              0x00              | INTR_DISABLE
  *              0x01              | INTR_ENABLE
@@ -3391,45 +3521,46 @@ u8 *v_intr_single_tap_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_intr_single_tap(u8 v_channel_u8,
-u8 v_intr_single_tap_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_intr_single_tap(u8 channel_u8,
+u8 intr_single_tap_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 		/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
-		switch (v_channel_u8) {
+		switch (channel_u8) {
 		/* write the single tap value*/
 		case BMA2x2_INTR1_SINGLE_TAP:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_INTR1_PAD_SINGLE_TAP__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE(v_data_u8,
+			BMA2x2_ENABLE_INTR1_PAD_SINGLE_TAP_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE(data_u8,
 			BMA2x2_ENABLE_INTR1_PAD_SINGLE_TAP,
-			v_intr_single_tap_u8);
+			intr_single_tap_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_INTR1_PAD_SINGLE_TAP__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_ENABLE_INTR1_PAD_SINGLE_TAP_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
 		case BMA2x2_INTR2_SINGLE_TAP:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_INTR2_PAD_SINGLE_TAP__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8,
+			BMA2x2_ENABLE_INTR2_PAD_SINGLE_TAP_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8,
 			BMA2x2_ENABLE_INTR2_PAD_SINGLE_TAP,
-			v_intr_single_tap_u8);
+			intr_single_tap_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_INTR2_PAD_SINGLE_TAP__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_ENABLE_INTR2_PAD_SINGLE_TAP_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
 		default:
 			com_rslt = E_OUT_OF_RANGE;
@@ -3445,14 +3576,14 @@ u8 v_intr_single_tap_u8)
  * @note INTR2_orient -> register 0x1B bit 6
  *
  *
- * @param v_channel_u8: The value of orient interrupt select
- *        v_channel_u8     |   result
+ * @param channel_u8: The value of orient interrupt select
+ *        channel_u8     |   result
  *       ----------------- | ------------------
  *              0          | BMA2x2_ACCEL_INTR1_ORIENT
  *              1          | BMA2x2_ACCEL_INTR2_ORIENT
  *
- *  @param v_intr_orient_u8: The value of orient interrupt enable
- *       v_intr_orient_u8         |   result
+ *  @param intr_orient_u8: The value of orient interrupt enable
+ *       intr_orient_u8         |   result
  *       ------------------------ | ------------------
  *              0x00              | INTR_DISABLE
  *              0x01              | INTR_ENABLE
@@ -3464,34 +3595,35 @@ u8 v_intr_single_tap_u8)
  *
  *
 */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_intr_orient(u8 v_channel_u8,
-u8 *v_intr_orient_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_intr_orient(u8 channel_u8,
+u8 *intr_orient_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 		/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
-		switch (v_channel_u8) {
+		switch (channel_u8) {
 		/* Read orient interrupt*/
 		case BMA2x2_INTR1_ORIENT:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_INTR1_PAD_ORIENT__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_intr_orient_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_ENABLE_INTR1_PAD_ORIENT);
+			BMA2x2_ENABLE_INTR1_PAD_ORIENT_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*intr_orient_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_ENABLE_INTR1_PAD_ORIENT);
 		break;
 		case BMA2x2_INTR2_ORIENT:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_INTR2_PAD_ORIENT__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_intr_orient_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_ENABLE_INTR2_PAD_ORIENT);
+			BMA2x2_ENABLE_INTR2_PAD_ORIENT_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*intr_orient_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_ENABLE_INTR2_PAD_ORIENT);
 		break;
 		default:
 			com_rslt = E_OUT_OF_RANGE;
@@ -3507,14 +3639,14 @@ u8 *v_intr_orient_u8)
  * @note INTR2_orient -> register 0x1B bit 6
  *
  *
- * @param v_channel_u8: The value of orient interrupt select
- *        v_channel_u8     |   result
+ * @param channel_u8: The value of orient interrupt select
+ *        channel_u8     |   result
  *       ----------------- | ------------------
  *              0          | BMA2x2_ACCEL_INTR1_ORIENT
  *              1          | BMA2x2_ACCEL_INTR2_ORIENT
  *
- *  @param v_intr_orient_u8: The value of orient interrupt enable
- *       v_intr_orient_u8         |   result
+ *  @param intr_orient_u8: The value of orient interrupt enable
+ *       intr_orient_u8         |   result
  *       ------------------------ | ------------------
  *              0x00              | INTR_DISABLE
  *              0x01              | INTR_ENABLE
@@ -3526,44 +3658,45 @@ u8 *v_intr_orient_u8)
  *
  *
 */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_intr_orient(u8 v_channel_u8,
-u8 v_intr_orient_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_intr_orient(u8 channel_u8,
+u8 intr_orient_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
-		switch (v_channel_u8) {
+		switch (channel_u8) {
 		/* Write orient interrupt */
 		case BMA2x2_INTR1_ORIENT:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_INTR1_PAD_ORIENT__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8,
-			BMA2x2_ENABLE_INTR1_PAD_ORIENT, v_intr_orient_u8);
+			BMA2x2_ENABLE_INTR1_PAD_ORIENT_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8,
+			BMA2x2_ENABLE_INTR1_PAD_ORIENT, intr_orient_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_INTR1_PAD_ORIENT__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_ENABLE_INTR1_PAD_ORIENT_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
 		case BMA2x2_INTR2_ORIENT:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_INTR2_PAD_ORIENT__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8,
-			BMA2x2_ENABLE_INTR2_PAD_ORIENT, v_intr_orient_u8);
+			BMA2x2_ENABLE_INTR2_PAD_ORIENT_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8,
+			BMA2x2_ENABLE_INTR2_PAD_ORIENT, intr_orient_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_INTR2_PAD_ORIENT__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_ENABLE_INTR2_PAD_ORIENT_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
 		default:
 			com_rslt = E_OUT_OF_RANGE;
@@ -3581,14 +3714,14 @@ u8 v_intr_orient_u8)
  *
  *
  *
- * @param v_channel_u8: The value of flat interrupt select
- *        v_channel_u8     |   result
+ * @param channel_u8: The value of flat interrupt select
+ *        channel_u8     |   result
  *       ----------------- | ------------------
  *              0          | BMA2x2_ACCEL_INTR1_FLAT
  *              1          | BMA2x2_ACCEL_INTR2_FLAT
  *
- * @param v_intr_flat_u8: The flat interrupt enable value
- *       v_intr_flat_u8           |   result
+ * @param intr_flat_u8: The flat interrupt enable value
+ *       intr_flat_u8           |   result
  *       ------------------------ | ------------------
  *              0x00              | INTR_DISABLE
  *              0x01              | INTR_ENABLE
@@ -3600,34 +3733,35 @@ u8 v_intr_orient_u8)
  *
  *
 */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_intr_flat(u8 v_channel_u8,
-u8 *v_intr_flat_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_intr_flat(u8 channel_u8,
+u8 *intr_flat_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 		/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
-		switch (v_channel_u8) {
+		switch (channel_u8) {
 		/* Read flat interrupt */
 		case BMA2x2_INTR1_FLAT:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_INTR1_PAD_FLAT__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_intr_flat_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_ENABLE_INTR1_PAD_FLAT);
+			BMA2x2_ENABLE_INTR1_PAD_FLAT_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*intr_flat_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_ENABLE_INTR1_PAD_FLAT);
 		break;
 		case BMA2x2_INTR2_FLAT:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_INTR2_PAD_FLAT__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_intr_flat_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_ENABLE_INTR2_PAD_FLAT);
+			BMA2x2_ENABLE_INTR2_PAD_FLAT_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*intr_flat_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_ENABLE_INTR2_PAD_FLAT);
 		break;
 		default:
 			com_rslt = E_OUT_OF_RANGE;
@@ -3645,14 +3779,14 @@ u8 *v_intr_flat_u8)
  *
  *
  *
- * @param v_channel_u8: The value of flat interrupt select
- *        v_channel_u8     |   result
+ * @param channel_u8: The value of flat interrupt select
+ *        channel_u8     |   result
  *       ----------------- | ------------------
  *              0          | BMA2x2_ACCEL_INTR1_FLAT
  *              1          | BMA2x2_ACCEL_INTR2_FLAT
  *
- * @param v_intr_flat_u8: The flat interrupt enable value
- *       v_intr_flat_u8           |   result
+ * @param intr_flat_u8: The flat interrupt enable value
+ *       intr_flat_u8           |   result
  *       ------------------------ | ------------------
  *              0x00              | INTR_DISABLE
  *              0x01              | INTR_ENABLE
@@ -3664,44 +3798,45 @@ u8 *v_intr_flat_u8)
  *
  *
 */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_intr_flat(u8 v_channel_u8,
-u8 v_intr_flat_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_intr_flat(u8 channel_u8,
+u8 intr_flat_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
-		switch (v_channel_u8) {
+		switch (channel_u8) {
 		/* write flat interrupt */
 		case BMA2x2_INTR1_FLAT:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_INTR1_PAD_FLAT__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8,
-			BMA2x2_ENABLE_INTR1_PAD_FLAT, v_intr_flat_u8);
+			BMA2x2_ENABLE_INTR1_PAD_FLAT_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8,
+			BMA2x2_ENABLE_INTR1_PAD_FLAT, intr_flat_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_INTR1_PAD_FLAT__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_ENABLE_INTR1_PAD_FLAT_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
 		case BMA2x2_INTR2_FLAT:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_INTR2_PAD_FLAT__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8,
-			BMA2x2_ENABLE_INTR2_PAD_FLAT, v_intr_flat_u8);
+			BMA2x2_ENABLE_INTR2_PAD_FLAT_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8,
+			BMA2x2_ENABLE_INTR2_PAD_FLAT, intr_flat_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_INTR2_PAD_FLAT__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_ENABLE_INTR2_PAD_FLAT_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
 		default:
 			com_rslt = E_OUT_OF_RANGE;
@@ -3718,8 +3853,8 @@ u8 v_intr_flat_u8)
  *
  *
  *
- *  @param v_channel_u8: The value of new data interrupt select
- *        v_channel_u8     |   result
+ *  @param channel_u8: The value of new data interrupt select
+ *        channel_u8     |   result
  *       ----------------- | ------------------
  *              0          | BMA2x2_ACCEL_INTR1_NEWDATA
  *              1          | BMA2x2_ACCEL_INTR2_NEWDATA
@@ -3737,34 +3872,35 @@ u8 v_intr_flat_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_new_data(u8 v_channel_u8,
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_new_data(u8 channel_u8,
 u8 *intr_newdata_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 		/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
-		switch (v_channel_u8) {
+		switch (channel_u8) {
 		/* Read the data interrupt*/
 		case BMA2x2_INTR1_NEWDATA:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_INTR1_PAD_NEWDATA__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_ENABLE_INTR1_PAD_NEWDATA_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 			*intr_newdata_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_ENABLE_INTR1_PAD_NEWDATA);
+			(data_u8, BMA2x2_ENABLE_INTR1_PAD_NEWDATA);
 		break;
 		case BMA2x2_INTR2_NEWDATA:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_INTR2_PAD_NEWDATA__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_ENABLE_INTR2_PAD_NEWDATA_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 			*intr_newdata_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_ENABLE_INTR2_PAD_NEWDATA);
+			(data_u8, BMA2x2_ENABLE_INTR2_PAD_NEWDATA);
 		break;
 		default:
 			com_rslt = E_OUT_OF_RANGE;
@@ -3781,8 +3917,8 @@ u8 *intr_newdata_u8)
  *
  *
  *
- *  @param v_channel_u8: The value of new data interrupt select
- *        v_channel_u8     |   result
+ *  @param channel_u8: The value of new data interrupt select
+ *        channel_u8     |   result
  *       ----------------- | ------------------
  *              0          | BMA2x2_ACCEL_INTR1_NEWDATA
  *              1          | BMA2x2_ACCEL_INTR2_NEWDATA
@@ -3800,44 +3936,45 @@ u8 *intr_newdata_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_new_data(u8 v_channel_u8,
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_new_data(u8 channel_u8,
 u8 intr_newdata_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
-		switch (v_channel_u8) {
+		switch (channel_u8) {
 		/* write the new data interrupt */
 		case BMA2x2_INTR1_NEWDATA:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_INTR1_PAD_NEWDATA__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8,
+			BMA2x2_ENABLE_INTR1_PAD_NEWDATA_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8,
 			BMA2x2_ENABLE_INTR1_PAD_NEWDATA, intr_newdata_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_INTR1_PAD_NEWDATA__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_ENABLE_INTR1_PAD_NEWDATA_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
 		case BMA2x2_INTR2_NEWDATA:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_INTR2_PAD_NEWDATA__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8,
+			BMA2x2_ENABLE_INTR2_PAD_NEWDATA_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8,
 			BMA2x2_ENABLE_INTR2_PAD_NEWDATA, intr_newdata_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_INTR2_PAD_NEWDATA__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_ENABLE_INTR2_PAD_NEWDATA_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
 		default:
 			com_rslt = E_OUT_OF_RANGE;
@@ -3850,8 +3987,8 @@ u8 intr_newdata_u8)
  * @brief This API is used to get the fifo watermark interrupt1 data
  * in the register 0x1A bit 1
  *
- *  @param  v_intr1_fifo_wm_u8 : The value of interrupt1 FIFO watermark enable
- *       v_intr1_fifo_wm_u8       |    result
+ *  @param  intr1_fifo_wm_u8 : The value of interrupt1 FIFO watermark enable
+ *       intr1_fifo_wm_u8       |    result
  *       ------------------------ | ------------------
  *              0x00              | INTR_DISABLE
  *              0x01              | INTR_ENABLE
@@ -3864,12 +4001,13 @@ u8 intr_newdata_u8)
  *
  *
 */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_intr1_fifo_wm(u8 *v_intr1_fifo_wm_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_intr1_fifo_wm(u8 *intr1_fifo_wm_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 		/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
@@ -3877,10 +4015,10 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_intr1_fifo_wm(u8 *v_intr1_fifo_wm_u8)
 			/* read the fifo watermark interrupt */
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_INTR1_PAD_FIFO_WM__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_intr1_fifo_wm_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_ENABLE_INTR1_PAD_FIFO_WM);
+			BMA2x2_ENABLE_INTR1_PAD_FIFO_WM_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*intr1_fifo_wm_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_ENABLE_INTR1_PAD_FIFO_WM);
 		}
 	return com_rslt;
 }
@@ -3888,8 +4026,8 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_intr1_fifo_wm(u8 *v_intr1_fifo_wm_u8)
  * @brief This API is used to set the fifo watermark interrupt1 data
  * in the register 0x1A bit 1
  *
- *  @param  v_intr1_fifo_wm_u8 : The value of interrupt1 FIFO watermark enable
- *       v_intr1_fifo_wm_u8       |    result
+ *  @param  intr1_fifo_wm_u8 : The value of interrupt1 FIFO watermark enable
+ *       intr1_fifo_wm_u8       |    result
  *       ------------------------ | ------------------
  *              0x00              | INTR_DISABLE
  *              0x01              | INTR_ENABLE
@@ -3902,29 +4040,31 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_intr1_fifo_wm(u8 *v_intr1_fifo_wm_u8)
  *
  *
 */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_intr1_fifo_wm(u8 v_intr1_fifo_wm_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_intr1_fifo_wm(u8 intr1_fifo_wm_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
-		if (v_intr1_fifo_wm_u8 < C_BMA2x2_TWO_U8X) {
+		if (intr1_fifo_wm_u8 <
+		BMA2x2_FIFO_MODE_STATUS_RANGE) {
 			/* write the fifo watermark interrupt */
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_INTR1_PAD_FIFO_WM__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8,
-			BMA2x2_ENABLE_INTR1_PAD_FIFO_WM, v_intr1_fifo_wm_u8);
+			BMA2x2_ENABLE_INTR1_PAD_FIFO_WM_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8,
+			BMA2x2_ENABLE_INTR1_PAD_FIFO_WM, intr1_fifo_wm_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_INTR1_PAD_FIFO_WM__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_ENABLE_INTR1_PAD_FIFO_WM_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		} else {
 		com_rslt = E_OUT_OF_RANGE;
 		}
@@ -3935,8 +4075,8 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_intr1_fifo_wm(u8 v_intr1_fifo_wm_u8)
  * @brief This API is used to get the fifo watermark interrupt2 data
  * in the register 0x1A bit 6
  *
- *  @param  v_intr2_fifo_wm_u8 : The value of interrupt1 FIFO watermark enable
- *       v_intr2_fifo_wm_u8       |    result
+ *  @param  intr2_fifo_wm_u8 : The value of interrupt1 FIFO watermark enable
+ *       intr2_fifo_wm_u8       |    result
  *       ------------------------ | ------------------
  *              0x00              | INTR_DISABLE
  *              0x01              | INTR_ENABLE
@@ -3949,12 +4089,13 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_intr1_fifo_wm(u8 v_intr1_fifo_wm_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_intr2_fifo_wm(u8 *v_intr2_fifo_wm_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_intr2_fifo_wm(u8 *intr2_fifo_wm_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 		/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
@@ -3962,10 +4103,10 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_intr2_fifo_wm(u8 *v_intr2_fifo_wm_u8)
 			/* read the fifo watermark interrupt2*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_INTR2_PAD_FIFO_WM__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_intr2_fifo_wm_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_ENABLE_INTR2_PAD_FIFO_WM);
+			BMA2x2_ENABLE_INTR2_PAD_FIFO_WM_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*intr2_fifo_wm_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_ENABLE_INTR2_PAD_FIFO_WM);
 		}
 	return com_rslt;
 }
@@ -3973,8 +4114,8 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_intr2_fifo_wm(u8 *v_intr2_fifo_wm_u8)
  * @brief This API is used to set the fifo watermark interrupt2 data
  * in the register 0x1A bit 6
  *
- *  @param  v_intr2_fifo_wm_u8 : The value of interrupt1 FIFO watermark enable
- *       v_intr2_fifo_wm_u8       |    result
+ *  @param  intr2_fifo_wm_u8 : The value of interrupt1 FIFO watermark enable
+ *       intr2_fifo_wm_u8       |    result
  *       ------------------------ | ------------------
  *              0x00              | INTR_DISABLE
  *              0x01              | INTR_ENABLE
@@ -3987,29 +4128,31 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_intr2_fifo_wm(u8 *v_intr2_fifo_wm_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_intr2_fifo_wm(u8 v_intr2_fifo_wm_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_intr2_fifo_wm(u8 intr2_fifo_wm_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
-		if (v_intr2_fifo_wm_u8 < C_BMA2x2_TWO_U8X) {
+		if (intr2_fifo_wm_u8 <
+		BMA2x2_FIFO_MODE_STATUS_RANGE) {
 			/* write the fifo watermark interrupt2*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_INTR2_PAD_FIFO_WM__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8,
-			BMA2x2_ENABLE_INTR2_PAD_FIFO_WM, v_intr2_fifo_wm_u8);
+			BMA2x2_ENABLE_INTR2_PAD_FIFO_WM_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8,
+			BMA2x2_ENABLE_INTR2_PAD_FIFO_WM, intr2_fifo_wm_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_INTR2_PAD_FIFO_WM__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_ENABLE_INTR2_PAD_FIFO_WM_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		} else {
 		com_rslt = E_OUT_OF_RANGE;
 		}
@@ -4022,8 +4165,8 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_intr2_fifo_wm(u8 v_intr2_fifo_wm_u8)
  *
  *
  *
- *  @param v_intr1_fifo_full_u8 : The value of fifo full interrupt enable
- *       v_intr1_fifo_full_u8     |    result
+ *  @param intr1_fifo_full_u8 : The value of fifo full interrupt enable
+ *       intr1_fifo_full_u8     |    result
  *       ------------------------ | ------------------
  *              0x00              | INTR_DISABLE
  *              0x01              | INTR_ENABLE
@@ -4036,12 +4179,13 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_intr2_fifo_wm(u8 v_intr2_fifo_wm_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_intr1_fifo_full(u8 *v_intr1_fifo_full_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_intr1_fifo_full(u8 *intr1_fifo_full_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 		/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
@@ -4049,10 +4193,10 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_intr1_fifo_full(u8 *v_intr1_fifo_full_u8)
 			/* read the fifo full interrupt1*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_INTR1_PAD_FIFO_FULL__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_intr1_fifo_full_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_ENABLE_INTR1_PAD_FIFO_FULL);
+			BMA2x2_ENABLE_INTR1_PAD_FIFO_FULL_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*intr1_fifo_full_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_ENABLE_INTR1_PAD_FIFO_FULL);
 		}
 	return com_rslt;
 }
@@ -4062,8 +4206,8 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_intr1_fifo_full(u8 *v_intr1_fifo_full_u8)
  *
  *
  *
- *  @param v_intr1_fifo_full_u8 : The value of fifo full interrupt enable
- *       v_intr1_fifo_full_u8     |    result
+ *  @param intr1_fifo_full_u8 : The value of fifo full interrupt enable
+ *       intr1_fifo_full_u8     |    result
  *       ------------------------ | ------------------
  *              0x00              | INTR_DISABLE
  *              0x01              | INTR_ENABLE
@@ -4076,29 +4220,31 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_intr1_fifo_full(u8 *v_intr1_fifo_full_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_intr1_fifo_full(u8 v_intr1_fifo_full_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_intr1_fifo_full(u8 intr1_fifo_full_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 		/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
-		if (v_intr1_fifo_full_u8 < C_BMA2x2_TWO_U8X) {
+		if (intr1_fifo_full_u8 <
+		BMA2x2_FIFO_MODE_STATUS_RANGE) {
 			/* write the fifo full interrupt1*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_INTR1_PAD_FIFO_FULL__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8, BMA2x2_ENABLE_INTR1_PAD_FIFO_FULL,
-			v_intr1_fifo_full_u8);
+			BMA2x2_ENABLE_INTR1_PAD_FIFO_FULL_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8, BMA2x2_ENABLE_INTR1_PAD_FIFO_FULL,
+			intr1_fifo_full_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_INTR1_PAD_FIFO_FULL__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_ENABLE_INTR1_PAD_FIFO_FULL_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 			} else {
 			com_rslt = E_OUT_OF_RANGE;
 		}
@@ -4111,8 +4257,8 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_intr1_fifo_full(u8 v_intr1_fifo_full_u8)
  *
  *
  *
- *  @param v_intr2_fifo_full_u8 : Thee vale of fifo full enable
- *       v_intr2_fifo_full_u8     |    result
+ *  @param intr2_fifo_full_u8 : Thee vale of fifo full enable
+ *       intr2_fifo_full_u8     |    result
  *       ------------------------ | ------------------
  *              0x00              | INTR_DISABLE
  *              0x01              | INTR_ENABLE
@@ -4126,12 +4272,13 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_intr1_fifo_full(u8 v_intr1_fifo_full_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_intr2_fifo_full(u8 *v_intr2_fifo_full_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_intr2_fifo_full(u8 *intr2_fifo_full_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 		/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
@@ -4139,10 +4286,10 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_intr2_fifo_full(u8 *v_intr2_fifo_full_u8)
 			/* read the fifo full interrupt2*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_INTR2_PAD_FIFO_FULL__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_intr2_fifo_full_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_ENABLE_INTR2_PAD_FIFO_FULL);
+			BMA2x2_ENABLE_INTR2_PAD_FIFO_FULL_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*intr2_fifo_full_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_ENABLE_INTR2_PAD_FIFO_FULL);
 		}
 	return com_rslt;
 }
@@ -4152,8 +4299,8 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_intr2_fifo_full(u8 *v_intr2_fifo_full_u8)
  *
  *
  *
- *  @param v_intr2_fifo_full_u8 : Thee vale of fifo full enable
- *       v_intr2_fifo_full_u8     |    result
+ *  @param intr2_fifo_full_u8 : Thee vale of fifo full enable
+ *       intr2_fifo_full_u8     |    result
  *       ------------------------ | ------------------
  *              0x00              | INTR_DISABLE
  *              0x01              | INTR_ENABLE
@@ -4167,30 +4314,32 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_intr2_fifo_full(u8 *v_intr2_fifo_full_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_intr2_fifo_full(u8 v_intr2_fifo_full_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_intr2_fifo_full(u8 intr2_fifo_full_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
-		if (v_intr2_fifo_full_u8 < C_BMA2x2_TWO_U8X) {
+		if (intr2_fifo_full_u8 <
+		BMA2x2_FIFO_MODE_STATUS_RANGE) {
 			/* write the fifo full interrupt2*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_INTR2_PAD_FIFO_FULL__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8,
+			BMA2x2_ENABLE_INTR2_PAD_FIFO_FULL_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8,
 			BMA2x2_ENABLE_INTR2_PAD_FIFO_FULL,
-			v_intr2_fifo_full_u8);
+			intr2_fifo_full_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_INTR2_PAD_FIFO_FULL__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_ENABLE_INTR2_PAD_FIFO_FULL_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 			} else {
 			com_rslt = E_OUT_OF_RANGE;
 			}
@@ -4205,8 +4354,8 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_intr2_fifo_full(u8 v_intr2_fifo_full_u8)
  *
  *
  *
- *  @param v_channel_u8 : The value of source select
- *       v_channel_u8     |    result
+ *  @param channel_u8 : The value of source select
+ *       channel_u8     |    result
  *       -----------------| ------------------
  *               0        | BMA2x2_ACCEL_SOURCE_LOW_G
  *               1        | BMA2x2_ACCEL_SOURCE_HIGH_G
@@ -4215,8 +4364,8 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_intr2_fifo_full(u8 v_intr2_fifo_full_u8)
  *               4        | BMA2x2_ACCEL_SOURCE_TAP
  *               5        | BMA2x2_ACCEL_SOURCE_DATA
  *
- *	@param v_intr_source_u8: The source status enable value
- *       v_intr_source_u8         |    result
+ *	@param intr_source_u8: The source status enable value
+ *       intr_source_u8         |    result
  *       ------------------------ | ------------------
  *              0x00              | INTR_DISABLE
  *              0x01              | INTR_ENABLE
@@ -4226,65 +4375,66 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_intr2_fifo_full(u8 v_intr2_fifo_full_u8)
  *	@retval -1 -> Error
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_source(u8 v_channel_u8,
-u8 *v_intr_source_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_source(u8 channel_u8,
+u8 *intr_source_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		return  E_BMA2x2_NULL_PTR;
 		} else {
 		/* read the source interrupt register */
-		switch (v_channel_u8) {
+		switch (channel_u8) {
 		case BMA2x2_SOURCE_LOW_G:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_UNFILT_INTR_SOURCE_LOW_G__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_intr_source_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_UNFILT_INTR_SOURCE_LOW_G);
+			BMA2x2_UNFILT_INTR_SOURCE_LOW_G_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*intr_source_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_UNFILT_INTR_SOURCE_LOW_G);
 		break;
 		case BMA2x2_SOURCE_HIGH_G:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_UNFILT_INTR_SOURCE_HIGH_G__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_intr_source_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_UNFILT_INTR_SOURCE_HIGH_G);
+			BMA2x2_UNFILT_INTR_SOURCE_HIGH_G_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*intr_source_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_UNFILT_INTR_SOURCE_HIGH_G);
 		break;
 		case BMA2x2_SOURCE_SLOPE:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_UNFILT_INTR_SOURCE_SLOPE__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_intr_source_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_UNFILT_INTR_SOURCE_SLOPE);
+			BMA2x2_UNFILT_INTR_SOURCE_SLOPE_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*intr_source_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_UNFILT_INTR_SOURCE_SLOPE);
 		break;
 		case BMA2x2_SOURCE_SLOW_NO_MOTION:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_UNFILT_INTR_SOURCE_SLOW_NO_MOTION__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_intr_source_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_UNFILT_INTR_SOURCE_SLOW_NO_MOTION);
+			BMA2x2_UNFILT_INTR_SOURCE_SLOW_NO_MOTION_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*intr_source_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_UNFILT_INTR_SOURCE_SLOW_NO_MOTION);
 		break;
 		case BMA2x2_SOURCE_TAP:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_UNFILT_INTR_SOURCE_TAP__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_intr_source_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_UNFILT_INTR_SOURCE_TAP);
+			BMA2x2_UNFILT_INTR_SOURCE_TAP_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*intr_source_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_UNFILT_INTR_SOURCE_TAP);
 		break;
 		case BMA2x2_SOURCE_DATA:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_UNFILT_INTR_SOURCE_DATA__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_intr_source_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_UNFILT_INTR_SOURCE_DATA);
+			BMA2x2_UNFILT_INTR_SOURCE_DATA_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*intr_source_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_UNFILT_INTR_SOURCE_DATA);
 		break;
 		default:
 			com_rslt = E_OUT_OF_RANGE;
@@ -4301,8 +4451,8 @@ u8 *v_intr_source_u8)
  *
  *
  *
- *  @param v_channel_u8 : The value of source select
- *       v_channel_u8     |    result
+ *  @param channel_u8 : The value of source select
+ *       channel_u8     |    result
  *       -----------------| ------------------
  *               0        | BMA2x2_ACCEL_SOURCE_LOW_G
  *               1        | BMA2x2_ACCEL_SOURCE_HIGH_G
@@ -4311,8 +4461,8 @@ u8 *v_intr_source_u8)
  *               4        | BMA2x2_ACCEL_SOURCE_TAP
  *               5        | BMA2x2_ACCEL_SOURCE_DATA
  *
- *	@param v_intr_source_u8: The source status enable value
- *       v_intr_source_u8         |    result
+ *	@param intr_source_u8: The source status enable value
+ *       intr_source_u8         |    result
  *       ------------------------ | ------------------
  *              0x00              | INTR_DISABLE
  *              0x01              | INTR_ENABLE
@@ -4322,96 +4472,96 @@ u8 *v_intr_source_u8)
  *	@retval -1 -> Error
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_source(u8 v_channel_u8,
-u8 v_intr_source_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_source(u8 channel_u8,
+u8 intr_source_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
 		if (p_bma2x2 == BMA2x2_NULL) {
-			return  E_BMA2x2_NULL_PTR;
+			com_rslt = E_BMA2x2_NULL_PTR;
 		} else {
-		switch (v_channel_u8) {
+		switch (channel_u8) {
 		/* write the source interrupt register*/
 		case BMA2x2_SOURCE_LOW_G:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_UNFILT_INTR_SOURCE_LOW_G__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8,
-			BMA2x2_UNFILT_INTR_SOURCE_LOW_G, v_intr_source_u8);
+			BMA2x2_UNFILT_INTR_SOURCE_LOW_G_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8,
+			BMA2x2_UNFILT_INTR_SOURCE_LOW_G, intr_source_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_UNFILT_INTR_SOURCE_LOW_G__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_UNFILT_INTR_SOURCE_LOW_G_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
 		case BMA2x2_SOURCE_HIGH_G:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_UNFILT_INTR_SOURCE_HIGH_G__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8,
-			BMA2x2_UNFILT_INTR_SOURCE_HIGH_G, v_intr_source_u8);
+			BMA2x2_UNFILT_INTR_SOURCE_HIGH_G_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8,
+			BMA2x2_UNFILT_INTR_SOURCE_HIGH_G, intr_source_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_UNFILT_INTR_SOURCE_HIGH_G__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_UNFILT_INTR_SOURCE_HIGH_G_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
 		case BMA2x2_SOURCE_SLOPE:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_UNFILT_INTR_SOURCE_SLOPE__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8,
-			BMA2x2_UNFILT_INTR_SOURCE_SLOPE, v_intr_source_u8);
+			BMA2x2_UNFILT_INTR_SOURCE_SLOPE_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8,
+			BMA2x2_UNFILT_INTR_SOURCE_SLOPE, intr_source_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_UNFILT_INTR_SOURCE_SLOPE__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_UNFILT_INTR_SOURCE_SLOPE_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
 		case BMA2x2_SOURCE_SLOW_NO_MOTION:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_UNFILT_INTR_SOURCE_SLOW_NO_MOTION__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8,
+			BMA2x2_UNFILT_INTR_SOURCE_SLOW_NO_MOTION_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8,
 			BMA2x2_UNFILT_INTR_SOURCE_SLOW_NO_MOTION,
-			v_intr_source_u8);
+			intr_source_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_UNFILT_INTR_SOURCE_SLOW_NO_MOTION__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_UNFILT_INTR_SOURCE_SLOW_NO_MOTION_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
 		case BMA2x2_SOURCE_TAP:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_UNFILT_INTR_SOURCE_TAP__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8, BMA2x2_UNFILT_INTR_SOURCE_TAP,
-			v_intr_source_u8);
+			BMA2x2_UNFILT_INTR_SOURCE_TAP_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8, BMA2x2_UNFILT_INTR_SOURCE_TAP,
+			intr_source_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_UNFILT_INTR_SOURCE_TAP__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_UNFILT_INTR_SOURCE_TAP_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
 		case BMA2x2_SOURCE_DATA:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_UNFILT_INTR_SOURCE_DATA__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8, BMA2x2_UNFILT_INTR_SOURCE_DATA,
-			v_intr_source_u8);
+			BMA2x2_UNFILT_INTR_SOURCE_DATA_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8, BMA2x2_UNFILT_INTR_SOURCE_DATA,
+			intr_source_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_UNFILT_INTR_SOURCE_DATA__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_UNFILT_INTR_SOURCE_DATA_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
 		default:
 			com_rslt = E_OUT_OF_RANGE;
@@ -4426,14 +4576,14 @@ u8 v_intr_source_u8)
  *	@note INTR1 -> bit 1
  *	@note INTR2 -> bit 3
  *
- *  @param v_channel_u8: The value of output type select
- *       v_channel_u8     |    result
+ *  @param channel_u8: The value of output type select
+ *       channel_u8     |    result
  *       -----------------| ------------------
  *               0        | BMA2x2_ACCEL_INTR1_OUTPUT
  *               1        | BMA2x2_ACCEL_INTR2_OUTPUT
  *
- *	@param v_intr_output_type_u8: The value of output type select
- *       v_intr_source_u8         |    result
+ *	@param intr_output_type_u8: The value of output type select
+ *       intr_source_u8         |    result
  *       ------------------------ | ------------------
  *              0x01              | OPEN_DRAIN
  *              0x00              | PUSS_PULL
@@ -4446,33 +4596,34 @@ u8 v_intr_source_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_intr_output_type(u8 v_channel_u8,
-u8 *v_intr_output_type_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_intr_output_type(u8 channel_u8,
+u8 *intr_output_type_u8)
 {
-		u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+		u8 data_u8 = BMA2x2_INIT_VALUE;
 		/*  Variable used to return value of
 		communication routine*/
 		BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 		if (p_bma2x2 == BMA2x2_NULL) {
-			return  E_BMA2x2_NULL_PTR;
+			com_rslt = E_BMA2x2_NULL_PTR;
 		} else {
-		switch (v_channel_u8) {
+		switch (channel_u8) {
 		/* read the output type */
 		case BMA2x2_INTR1_OUTPUT:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_INTR1_PAD_OUTPUT_TYPE__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_intr_output_type_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_INTR1_PAD_OUTPUT_TYPE);
+			BMA2x2_INTR1_PAD_OUTPUT_TYPE_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*intr_output_type_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_INTR1_PAD_OUTPUT_TYPE);
 		break;
 		case BMA2x2_INTR2_OUTPUT:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_INTR2_PAD_OUTPUT_TYPE__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_intr_output_type_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_INTR2_PAD_OUTPUT_TYPE);
+			BMA2x2_INTR2_PAD_OUTPUT_TYPE_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*intr_output_type_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_INTR2_PAD_OUTPUT_TYPE);
 		break;
 		default:
 			com_rslt = E_OUT_OF_RANGE;
@@ -4487,14 +4638,14 @@ u8 *v_intr_output_type_u8)
  *	@note INTR1 -> bit 1
  *	@note INTR2 -> bit 3
  *
- *  @param v_channel_u8: The value of output type select
- *         v_channel_u8   |    result
+ *  @param channel_u8: The value of output type select
+ *         channel_u8   |    result
  *       -----------------| ------------------
  *               0        | BMA2x2_ACCEL_INTR1_OUTPUT
  *               1        | BMA2x2_ACCEL_INTR2_OUTPUT
  *
- *	@param v_intr_output_type_u8: The value of output type select
- *       v_intr_source_u8         |    result
+ *	@param intr_output_type_u8: The value of output type select
+ *       intr_source_u8         |    result
  *       ------------------------ | ------------------
  *              0x01              | OPEN_DRAIN
  *              0x00              | PUSS_PULL
@@ -4507,43 +4658,44 @@ u8 *v_intr_output_type_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_intr_output_type(u8 v_channel_u8,
-u8 v_intr_output_type_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_intr_output_type(u8 channel_u8,
+u8 intr_output_type_u8)
 {
-		u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+		u8 data_u8 = BMA2x2_INIT_VALUE;
 		/*  Variable used to return value of
 		communication routine*/
 		BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 		if (p_bma2x2 == BMA2x2_NULL) {
-			return  E_BMA2x2_NULL_PTR;
+			com_rslt = E_BMA2x2_NULL_PTR;
 		}  else {
-		switch (v_channel_u8) {
+		switch (channel_u8) {
 		/* write the output type*/
 		case BMA2x2_INTR1_OUTPUT:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_INTR1_PAD_OUTPUT_TYPE__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8,
-			BMA2x2_INTR1_PAD_OUTPUT_TYPE, v_intr_output_type_u8);
+			BMA2x2_INTR1_PAD_OUTPUT_TYPE_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8,
+			BMA2x2_INTR1_PAD_OUTPUT_TYPE, intr_output_type_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_INTR1_PAD_OUTPUT_TYPE__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_INTR1_PAD_OUTPUT_TYPE_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
 		case BMA2x2_INTR2_OUTPUT:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_INTR2_PAD_OUTPUT_TYPE__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8,
-			BMA2x2_INTR2_PAD_OUTPUT_TYPE, v_intr_output_type_u8);
+			BMA2x2_INTR2_PAD_OUTPUT_TYPE_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8,
+			BMA2x2_INTR2_PAD_OUTPUT_TYPE, intr_output_type_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_INTR2_PAD_OUTPUT_TYPE__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_INTR2_PAD_OUTPUT_TYPE_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
 		default:
 			com_rslt = E_OUT_OF_RANGE;
@@ -4558,14 +4710,14 @@ u8 v_intr_output_type_u8)
  *	@note INTR1 -> bit 0
  *	@note INTR2 -> bit 2
  *
- *  @param v_channel_u8: The value of Active Level select
- *       v_channel_u8     |    result
+ *  @param channel_u8: The value of Active Level select
+ *       channel_u8     |    result
  *       -----------------| ------------------
  *               0        | BMA2x2_ACCEL_INTR1_LEVEL
  *               1        | BMA2x2_ACCEL_INTR2_LEVEL
  *
- *  @param v_intr_level_u8: The Active Level status enable value
- *        v_intr_level_u8         |    result
+ *  @param intr_level_u8: The Active Level status enable value
+ *        intr_level_u8         |    result
  *       ------------------------ | ------------------
  *              0x01              | ACTIVE_HIGH
  *              0x00              | ACTIVE_LOW
@@ -4577,33 +4729,34 @@ u8 v_intr_output_type_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_intr_level(u8 v_channel_u8,
-u8 *v_intr_level_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_intr_level(u8 channel_u8,
+u8 *intr_level_u8)
 {
-		u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+		u8 data_u8 = BMA2x2_INIT_VALUE;
 		/*  Variable used to return value of
 		communication routine*/
 		BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 		if (p_bma2x2 == BMA2x2_NULL) {
-			return  E_BMA2x2_NULL_PTR;
+			com_rslt = E_BMA2x2_NULL_PTR;
 		} else {
-		switch (v_channel_u8) {
+		switch (channel_u8) {
 		/* read the active level*/
 		case BMA2x2_INTR1_LEVEL:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_INTR1_PAD_ACTIVE_LEVEL__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_intr_level_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_INTR1_PAD_ACTIVE_LEVEL);
+			BMA2x2_INTR1_PAD_ACTIVE_LEVEL_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*intr_level_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_INTR1_PAD_ACTIVE_LEVEL);
 		break;
 		case BMA2x2_INTR2_LEVEL:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_INTR2_PAD_ACTIVE_LEVEL__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_intr_level_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_INTR2_PAD_ACTIVE_LEVEL);
+			BMA2x2_INTR2_PAD_ACTIVE_LEVEL_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*intr_level_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_INTR2_PAD_ACTIVE_LEVEL);
 		break;
 		default:
 			com_rslt = E_OUT_OF_RANGE;
@@ -4618,14 +4771,14 @@ u8 *v_intr_level_u8)
  *	@note INTR1 -> bit 0
  *	@note INTR2 -> bit 2
  *
- *  @param v_channel_u8: The value of Active Level select
- *       v_channel_u8     |    result
+ *  @param channel_u8: The value of Active Level select
+ *       channel_u8     |    result
  *       -----------------| ------------------
  *               0        | BMA2x2_ACCEL_INTR1_LEVEL
  *               1        | BMA2x2_ACCEL_INTR2_LEVEL
  *
- *  @param v_intr_level_u8: The Active Level status enable value
- *       v_intr_level_u8          |    result
+ *  @param intr_level_u8: The Active Level status enable value
+ *       intr_level_u8          |    result
  *       ------------------------ | ------------------
  *              0x01              | ACTIVE_HIGH
  *              0x00              | ACTIVE_LOW
@@ -4637,43 +4790,44 @@ u8 *v_intr_level_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_intr_level(u8 v_channel_u8,
-u8 v_intr_level_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_intr_level(u8 channel_u8,
+u8 intr_level_u8)
 {
-		u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+		u8 data_u8 = BMA2x2_INIT_VALUE;
 		/*  Variable used to return value of
 		communication routine*/
 		BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 		if (p_bma2x2 == BMA2x2_NULL) {
-			return  E_BMA2x2_NULL_PTR;
+			com_rslt = E_BMA2x2_NULL_PTR;
 		} else {
-		switch (v_channel_u8) {
+		switch (channel_u8) {
 		/* write the active level */
 		case BMA2x2_INTR1_LEVEL:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_INTR1_PAD_ACTIVE_LEVEL__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8,
-			BMA2x2_INTR1_PAD_ACTIVE_LEVEL, v_intr_level_u8);
+			BMA2x2_INTR1_PAD_ACTIVE_LEVEL_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8,
+			BMA2x2_INTR1_PAD_ACTIVE_LEVEL, intr_level_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_INTR1_PAD_ACTIVE_LEVEL__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_INTR1_PAD_ACTIVE_LEVEL_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
 		case BMA2x2_INTR2_LEVEL:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_INTR2_PAD_ACTIVE_LEVEL__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8,
-			BMA2x2_INTR2_PAD_ACTIVE_LEVEL, v_intr_level_u8);
+			BMA2x2_INTR2_PAD_ACTIVE_LEVEL_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8,
+			BMA2x2_INTR2_PAD_ACTIVE_LEVEL, intr_level_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_INTR2_PAD_ACTIVE_LEVEL__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_INTR2_PAD_ACTIVE_LEVEL_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
 		default:
 			com_rslt = E_OUT_OF_RANGE;
@@ -4688,8 +4842,8 @@ u8 v_intr_level_u8)
  *
  *
  *
- *  @param  v_rst_intr_u8: The value of reset interrupt
- *          v_rst_intr_u8         |  result
+ *  @param  rst_intr_u8: The value of reset interrupt
+ *          rst_intr_u8         |  result
  *       ------------------------ | ------------------
  *              0x01              | clear any latch interrupt
  *              0x00              | keep latch interrupt active
@@ -4701,24 +4855,25 @@ u8 v_intr_level_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_rst_intr(u8 v_rst_intr_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_rst_intr(u8 rst_intr_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 		/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
-			(p_bma2x2->dev_addr, BMA2x2_RESET_INTR__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8, BMA2x2_RESET_INTR, v_rst_intr_u8);
+			(p_bma2x2->dev_addr, BMA2x2_RESET_INTR_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8, BMA2x2_RESET_INTR, rst_intr_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr, BMA2x2_RESET_INTR__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			(p_bma2x2->dev_addr, BMA2x2_RESET_INTR_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		}
 	return com_rslt;
 }
@@ -4726,8 +4881,8 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_rst_intr(u8 v_rst_intr_u8)
  *	@brief This API is used to get
  *	the latch duration in the register 0x21 bit from 0 to 3
  *
- *	@param v_latch_intr_u8: The value of latch duration
- *        v_latch_intr_u8 |  result
+ *	@param latch_intr_u8: The value of latch duration
+ *        latch_intr_u8 |  result
  *       -----------------| ------------------
  *               0x00     | BMA2x2_LATCH_DURN_NON_LATCH
  *               0x01     | BMA2x2_LATCH_DURN_250MS
@@ -4754,22 +4909,23 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_rst_intr(u8 v_rst_intr_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_latch_intr(u8 *v_latch_intr_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_latch_intr(u8 *latch_intr_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
 			/* read the latch duration */
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
-			(p_bma2x2->dev_addr, BMA2x2_LATCH_INTR__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_latch_intr_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_LATCH_INTR);
+			(p_bma2x2->dev_addr, BMA2x2_LATCH_INTR_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*latch_intr_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_LATCH_INTR);
 		}
 	return com_rslt;
 }
@@ -4777,8 +4933,8 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_latch_intr(u8 *v_latch_intr_u8)
  *	@brief This API is used to set
  *	the latch duration in the register 0x21 bit from 0 to 3
  *
- *	@param v_latch_intr_u8: The value of latch duration
- *        v_latch_intr_u8 |  result
+ *	@param latch_intr_u8: The value of latch duration
+ *        latch_intr_u8 |  result
  *       -----------------| ------------------
  *               0x00     | BMA2x2_LATCH_DURN_NON_LATCH
  *               0x01     | BMA2x2_LATCH_DURN_250MS
@@ -4805,96 +4961,96 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_latch_intr(u8 *v_latch_intr_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_latch_intr(u8 v_latch_intr_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_latch_intr(u8 latch_intr_u8)
 {
-u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+u8 data_u8 = BMA2x2_INIT_VALUE;
 /*  Variable used to return value of
 communication routine*/
 BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
-u8 v_latch_durn_u8 = C_BMA2x2_ZERO_U8X;
+u8 latch_durn_u8 = BMA2x2_INIT_VALUE;
 if (p_bma2x2 == BMA2x2_NULL)  {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else  {
-		if (v_latch_intr_u8 < C_BMA2x2_SIXTEEN_U8X) {
-			switch (v_latch_intr_u8) {
+		if (latch_intr_u8 < BMA2x2_ACCEL_BW_MAX_RANGE) {
+			switch (latch_intr_u8) {
 			case BMA2x2_LATCH_DURN_NON_LATCH:
-				v_latch_durn_u8 = BMA2x2_LATCH_DURN_NON_LATCH;
+				latch_durn_u8 = BMA2x2_LATCH_DURN_NON_LATCH;
 
 				/*  NON LATCH   */
 			break;
 			case BMA2x2_LATCH_DURN_250MS:
-				v_latch_durn_u8 = BMA2x2_LATCH_DURN_250MS;
+				latch_durn_u8 = BMA2x2_LATCH_DURN_250MS;
 
 				/*  250 MS  */
 			break;
 			case BMA2x2_LATCH_DURN_500MS:
-				v_latch_durn_u8 = BMA2x2_LATCH_DURN_500MS;
+				latch_durn_u8 = BMA2x2_LATCH_DURN_500MS;
 
 				/*  500 MS  */
 			break;
 			case BMA2x2_LATCH_DURN_1S:
-				v_latch_durn_u8 = BMA2x2_LATCH_DURN_1S;
+				latch_durn_u8 = BMA2x2_LATCH_DURN_1S;
 
 				/*  1 S   */
 			break;
 			case BMA2x2_LATCH_DURN_2S:
-				v_latch_durn_u8 = BMA2x2_LATCH_DURN_2S;
+				latch_durn_u8 = BMA2x2_LATCH_DURN_2S;
 
 				/*  2 S  */
 			break;
 			case BMA2x2_LATCH_DURN_4S:
-				v_latch_durn_u8 = BMA2x2_LATCH_DURN_4S;
+				latch_durn_u8 = BMA2x2_LATCH_DURN_4S;
 
 				/*  4 S  */
 			break;
 			case BMA2x2_LATCH_DURN_8S:
-				v_latch_durn_u8 = BMA2x2_LATCH_DURN_8S;
+				latch_durn_u8 = BMA2x2_LATCH_DURN_8S;
 
 				/*  8 S  */
 			break;
 			case BMA2x2_LATCH_DURN_LATCH:
-				v_latch_durn_u8 = BMA2x2_LATCH_DURN_LATCH;
+				latch_durn_u8 = BMA2x2_LATCH_DURN_LATCH;
 
 				/*  LATCH  */
 			break;
 			case BMA2x2_LATCH_DURN_NON_LATCH1:
-				v_latch_durn_u8 = BMA2x2_LATCH_DURN_NON_LATCH1;
+				latch_durn_u8 = BMA2x2_LATCH_DURN_NON_LATCH1;
 
 				/*  NON LATCH1  */
 			break;
 			case BMA2x2_LATCH_DURN_250US:
-				v_latch_durn_u8 = BMA2x2_LATCH_DURN_250US;
+				latch_durn_u8 = BMA2x2_LATCH_DURN_250US;
 
 				/*  250 US   */
 			break;
 			case BMA2x2_LATCH_DURN_500US:
-				v_latch_durn_u8 = BMA2x2_LATCH_DURN_500US;
+				latch_durn_u8 = BMA2x2_LATCH_DURN_500US;
 
 				/*  500 US   */
 			break;
 			case BMA2x2_LATCH_DURN_1MS:
-				v_latch_durn_u8 = BMA2x2_LATCH_DURN_1MS;
+				latch_durn_u8 = BMA2x2_LATCH_DURN_1MS;
 
 				/*  1 MS   */
 			break;
 			case BMA2x2_LATCH_DURN_12_5MS:
-				v_latch_durn_u8 = BMA2x2_LATCH_DURN_12_5MS;
+				latch_durn_u8 = BMA2x2_LATCH_DURN_12_5MS;
 
 				/*  12.5 MS   */
 			break;
 			case BMA2x2_LATCH_DURN_25MS:
-				v_latch_durn_u8 = BMA2x2_LATCH_DURN_25MS;
+				latch_durn_u8 = BMA2x2_LATCH_DURN_25MS;
 
 				/*  25 MS   */
 			break;
 			case BMA2x2_LATCH_DURN_50MS:
-				v_latch_durn_u8 = BMA2x2_LATCH_DURN_50MS;
+				latch_durn_u8 = BMA2x2_LATCH_DURN_50MS;
 
 				/*  50 MS   */
 			break;
 			case BMA2x2_LATCH_DURN_LATCH1:
-				v_latch_durn_u8 = BMA2x2_LATCH_DURN_LATCH1;
+				latch_durn_u8 = BMA2x2_LATCH_DURN_LATCH1;
 
 				/*  LATCH1   */
 			break;
@@ -4903,13 +5059,13 @@ if (p_bma2x2 == BMA2x2_NULL)  {
 			}
 			/* write the latch duration */
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
-			(p_bma2x2->dev_addr, BMA2x2_LATCH_INTR__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8, BMA2x2_LATCH_INTR, v_latch_durn_u8);
+			(p_bma2x2->dev_addr, BMA2x2_LATCH_INTR_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8, BMA2x2_LATCH_INTR, latch_durn_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr, BMA2x2_LATCH_INTR__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			(p_bma2x2->dev_addr, BMA2x2_LATCH_INTR_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		} else {
 		com_rslt = E_OUT_OF_RANGE;
 		}
@@ -4924,27 +5080,27 @@ if (p_bma2x2 == BMA2x2_NULL)  {
  *	@note SLOPE_DURN		-> register 0x27 bit form 0 to 1
  *	@note SLO_NO_MOT_DURN -> register 0x27 bit form 2 to 7
  *
- *  @param v_channel_u8: The value of duration select
- *     v_channel_u8   | result
+ *  @param channel_u8: The value of duration select
+ *     channel_u8   | result
  *   -----------------| ------------------
  *               0    | BMA2x2_ACCEL_LOW_DURN
  *               1    | BMA2x2_ACCEL_HIGH_DURN
  *               2    | BMA2x2_ACCEL_SLOPE_DURN
  *               3    | BMA2x2_ACCEL_SLOW_NO_MOTION_DURN
  *
- *	@param v_durn_u8: The value of duration
+ *	@param durn_u8: The value of duration
  *
  *	@note :
  *     Duration           |    result
  * -----------------------| ------------------
  * BMA2x2_ACCEL_LOW_DURN  | Low-g interrupt trigger
- *         -              | delay according to([v_durn_u8 +1]*2)ms
+ *         -              | delay according to([durn_u8 +1]*2)ms
  *         -              | range from 2ms to 512ms. default is 20ms
  * BMA2x2_ACCEL_HIGH_DURN | high-g interrupt trigger
- *         -              | delay according to([v_durn_u8 +1]*2)ms
+ *         -              | delay according to([durn_u8 +1]*2)ms
  *         -              | range from 2ms to 512ms. default is 32ms
  * BMA2x2_ACCEL_SLOPE_DURN| slope interrupt trigger
- *         -              | if[v_durn_u8<1:0>+1] consecutive data points
+ *         -              | if[durn_u8<1:0>+1] consecutive data points
  *         -              | are above the slope interrupt threshold
  * SLO_NO_MOT_DURN        | Refer data sheet for clear information
  *
@@ -4955,49 +5111,50 @@ if (p_bma2x2 == BMA2x2_NULL)  {
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_durn(u8 v_channel_u8,
-u8 *v_durn_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_durn(u8 channel_u8,
+u8 *durn_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
 		/* write the duration data */
-		switch (v_channel_u8) {
+		switch (channel_u8) {
 		case BMA2x2_LOW_DURN:
 			/*LOW DURATION*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
-			(p_bma2x2->dev_addr, BMA2x2_LOW_DURN_REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_durn_u8 = v_data_u8;
+			(p_bma2x2->dev_addr, BMA2x2_LOW_DURN_ADDR,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*durn_u8 = data_u8;
 		break;
 		case BMA2x2_HIGH_DURN:
 			/*HIGH DURATION*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
-			(p_bma2x2->dev_addr, BMA2x2_HIGH_DURN_REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_durn_u8 = v_data_u8;
+			(p_bma2x2->dev_addr, BMA2x2_HIGH_DURN_ADDR,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*durn_u8 = data_u8;
 		break;
 		case BMA2x2_SLOPE_DURN:
 			/*SLOPE DURATION*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
-			(p_bma2x2->dev_addr, BMA2x2_SLOPE_DURN__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_durn_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_SLOPE_DURN);
+			(p_bma2x2->dev_addr, BMA2x2_SLOPE_DURN_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*durn_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_SLOPE_DURN);
 		break;
 		case BMA2x2_SLOW_NO_MOTION_DURN:
 			/*SLO NO MOT DURATION*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_SLOW_NO_MOTION_DURN__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_durn_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_SLOW_NO_MOTION_DURN);
+			BMA2x2_SLOW_NO_MOTION_DURN_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*durn_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_SLOW_NO_MOTION_DURN);
 		break;
 		default:
 			com_rslt = E_OUT_OF_RANGE;
@@ -5014,27 +5171,27 @@ u8 *v_durn_u8)
  *	@note SLOPE_DURN		-> register 0x27 bit form 0 to 1
  *	@note SLO_NO_MOT_DURN -> register 0x27 bit form 2 to 7
  *
- *  @param v_channel_u8: The value of duration select
- *     v_channel_u8   | result
+ *  @param channel_u8: The value of duration select
+ *     channel_u8   | result
  *   -----------------| ------------------
  *               0    | BMA2x2_ACCEL_LOW_DURN
  *               1    | BMA2x2_ACCEL_HIGH_DURN
  *               2    | BMA2x2_ACCEL_SLOPE_DURN
  *               3    | BMA2x2_ACCEL_SLOW_NO_MOTION_DURN
  *
- *	@param v_durn_u8: The value of duration
+ *	@param durn_u8: The value of duration
  *
  *	@note :
  *     Duration           |    result
  * -----------------------| ------------------
  * BMA2x2_ACCEL_LOW_DURN  | Low-g interrupt trigger
- *         -              | delay according to([v_durn_u8 +1]*2)ms
+ *         -              | delay according to([durn_u8 +1]*2)ms
  *         -              | range from 2ms to 512ms. default is 20ms
  * BMA2x2_ACCEL_HIGH_DURN | high-g interrupt trigger
- *         -              | delay according to([v_durn_u8 +1]*2)ms
+ *         -              | delay according to([durn_u8 +1]*2)ms
  *         -              | range from 2ms to 512ms. default is 32ms
  * BMA2x2_ACCEL_SLOPE_DURN| slope interrupt trigger
- *         -              | if[v_durn_u8<1:0>+1] consecutive data points
+ *         -              | if[durn_u8<1:0>+1] consecutive data points
  *         -              | are above the slope interrupt threshold
  * SLO_NO_MOT_DURN        | Refer data sheet for clear information
  *
@@ -5045,59 +5202,60 @@ u8 *v_durn_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_durn(u8 v_channel_u8,
-u8 v_durn_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_durn(u8 channel_u8,
+u8 durn_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 		/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL)  {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		}  else  {
 		/* write duration data */
-		switch (v_channel_u8)   {
+		switch (channel_u8)   {
 		case BMA2x2_LOW_DURN:
 			/*LOW DURATION*/
-			v_data_u8 = v_durn_u8;
+			data_u8 = durn_u8;
 			com_rslt = p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr, BMA2x2_LOW_DURN_REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			(p_bma2x2->dev_addr, BMA2x2_LOW_DURN_ADDR,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
 		case BMA2x2_HIGH_DURN:
 			/*HIGH DURATION*/
-			v_data_u8 = v_durn_u8;
+			data_u8 = durn_u8;
 			com_rslt = p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_HIGH_DURN_REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_HIGH_DURN_ADDR,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
 		case BMA2x2_SLOPE_DURN:
 			/*SLOPE DURATION*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_SLOPE_DURN__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8, BMA2x2_SLOPE_DURN, v_durn_u8);
+			BMA2x2_SLOPE_DURN_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8, BMA2x2_SLOPE_DURN, durn_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_SLOPE_DURN__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_SLOPE_DURN_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
 		case BMA2x2_SLOW_NO_MOTION_DURN:
 			/*SLO NO MOT DURATION*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_SLOW_NO_MOTION_DURN__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8, BMA2x2_SLOW_NO_MOTION_DURN, v_durn_u8);
+			BMA2x2_SLOW_NO_MOTION_DURN_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8, BMA2x2_SLOW_NO_MOTION_DURN, durn_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_SLOW_NO_MOTION_DURN__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_SLOW_NO_MOTION_DURN_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
 		default:
 			com_rslt = E_OUT_OF_RANGE;
@@ -5114,49 +5272,49 @@ u8 v_durn_u8)
  *	@note SLOPE_THRES		-> register 0x28 bit form 0 to 7
  *	@note SLO_NO_MOT_THRES -> register 0x29 bit form 0 to 7
  *
- *  @param v_channel_u8: The value of threshold selection
- *     v_channel_u8   | result
+ *  @param channel_u8: The value of threshold selection
+ *     channel_u8   | result
  *   -----------------| ------------------
  *               0    | BMA2x2_ACCEL_LOW_THRES
  *               1    | BMA2x2_ACCEL_HIGH_THRES
  *               2    | BMA2x2_ACCEL_SLOPE_THRES
  *               3    | BMA2x2_ACCEL_SLOW_NO_MOTION_THRES
  *
- *  @param v_thres_u8: The threshold value of selected interrupts
+ *  @param thres_u8: The threshold value of selected interrupts
  *
  *	@note : LOW-G THRESHOLD
  *     Threshold                    |    result
  * ---------------------------------| ------------------
  * BMA2x2_ACCEL_LOW_THRES           | Low-threshold interrupt trigger
- *                                  | according to(v_thres_u8 * 7.81) mg
+ *                                  | according to(thres_u8 * 7.81) mg
  *                                  | range from 0g to 1.992g
  *                                  | default is 375mg
  *	@note : HIGH-G THRESHOLD
  *	@note Threshold of high-g interrupt according to accel g range
  *    g-range           |      High-g threshold
  *  --------------------|----------------------------
- *     2g               |    (v_thres_u8 * 7.81) mg
- *     4g               |    (v_thres_u8 * 15.63) mg
- *     8g               |    (v_thres_u8 * 31.25) mg
- *     16g              |    (v_thres_u8 * 62.5) mg
+ *     2g               |    (thres_u8 * 7.81) mg
+ *     4g               |    (thres_u8 * 15.63) mg
+ *     8g               |    (thres_u8 * 31.25) mg
+ *     16g              |    (thres_u8 * 62.5) mg
  *
  *	@note : SLOPE THRESHOLD
  *	@note Threshold of slope interrupt according to accel g range
  *    g-range           |      Slope threshold
  *  --------------------|----------------------------
- *     2g               |    (v_thres_u8 * 3.19) mg
- *     4g               |    (v_thres_u8 * 7.81) mg
- *     8g               |    (v_thres_u8 * 15.63) mg
- *     16g              |    (v_thres_u8 * 31.25) mg
+ *     2g               |    (thres_u8 * 3.19) mg
+ *     4g               |    (thres_u8 * 7.81) mg
+ *     8g               |    (thres_u8 * 15.63) mg
+ *     16g              |    (thres_u8 * 31.25) mg
  *
  *	@note : SLOW NO MOTION THRESHOLD
  *	@note Threshold of slow no motion interrupt according to accel g range
  *    g-range           |   slow no motion threshold
  *  --------------------|----------------------------
- *     2g               |    (v_thres_u8 * 3.19) mg
- *     4g               |    (v_thres_u8 * 7.81) mg
- *     8g               |    (v_thres_u8 * 15.63) mg
- *     16g              |    (v_thres_u8 * 31.25) mg
+ *     2g               |    (thres_u8 * 3.19) mg
+ *     4g               |    (thres_u8 * 7.81) mg
+ *     8g               |    (thres_u8 * 15.63) mg
+ *     16g              |    (thres_u8 * 31.25) mg
  *
  *
  *
@@ -5166,49 +5324,50 @@ u8 v_durn_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_thres(u8 v_channel_u8,
-u8 *v_thres_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_thres(u8 channel_u8,
+u8 *thres_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
-		switch (v_channel_u8) {
+		switch (channel_u8) {
 		/* Read the threshold value */
 		case BMA2x2_LOW_THRES:
 			/*LOW THRESHOLD*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
-			(p_bma2x2->dev_addr, BMA2x2_LOW_THRES_REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_thres_u8 = v_data_u8;
+			(p_bma2x2->dev_addr, BMA2x2_LOW_THRES_ADDR,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*thres_u8 = data_u8;
 		break;
 		case BMA2x2_HIGH_THRES:
 			/*HIGH THRESHOLD*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_HIGH_THRES_REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_thres_u8 = v_data_u8;
+			BMA2x2_HIGH_THRES_ADDR,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*thres_u8 = data_u8;
 		break;
 		case BMA2x2_SLOPE_THRES:
 			/*SLOPE THRESHOLD*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_SLOPE_THRES_REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_thres_u8 = v_data_u8;
+			BMA2x2_SLOPE_THRES_ADDR,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*thres_u8 = data_u8;
 		break;
 		case BMA2x2_SLOW_NO_MOTION_THRES:
 			/*SLO NO MOT THRESHOLD*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_SLOW_NO_MOTION_THRES_REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_thres_u8 = v_data_u8;
+			BMA2x2_SLOW_NO_MOTION_THRES_ADDR,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*thres_u8 = data_u8;
 		break;
 		default:
 			com_rslt = E_OUT_OF_RANGE;
@@ -5225,49 +5384,49 @@ u8 *v_thres_u8)
  *	@note SLOPE_THRES		-> register 0x28 bit form 0 to 7
  *	@note SLO_NO_MOT_THRES -> register 0x29 bit form 0 to 7
  *
- *  @param v_channel_u8: The value of threshold selection
- *     v_channel_u8   | result
+ *  @param channel_u8: The value of threshold selection
+ *     channel_u8   | result
  *   -----------------| ------------------
  *               0    | BMA2x2_ACCEL_LOW_THRES
  *               1    | BMA2x2_ACCEL_HIGH_THRES
  *               2    | BMA2x2_ACCEL_SLOPE_THRES
  *               3    | BMA2x2_ACCEL_SLOW_NO_MOTION_THRES
  *
- *  @param v_thres_u8: The threshold value of selected interrupts
+ *  @param thres_u8: The threshold value of selected interrupts
  *
  *	@note : LOW-G THRESHOLD
  *     Threshold                    |    result
  * ---------------------------------| ------------------
  * BMA2x2_ACCEL_LOW_THRES           | Low-threshold interrupt trigger
- *                                  | according to(v_thres_u8 * 7.81) mg
+ *                                  | according to(thres_u8 * 7.81) mg
  *                                  | range from 0g to 1.992g
  *                                  | default is 375mg
  *	@note : HIGH-G THRESHOLD
  *	@note Threshold of high-g interrupt according to accel g range
  *    g-range           |      High-g threshold
  *  --------------------|----------------------------
- *     2g               |    (v_thres_u8 * 7.81) mg
- *     4g               |    (v_thres_u8 * 15.63) mg
- *     8g               |    (v_thres_u8 * 31.25) mg
- *     16g              |    (v_thres_u8 * 62.5) mg
+ *     2g               |    (thres_u8 * 7.81) mg
+ *     4g               |    (thres_u8 * 15.63) mg
+ *     8g               |    (thres_u8 * 31.25) mg
+ *     16g              |    (thres_u8 * 62.5) mg
  *
  *	@note : SLOPE THRESHOLD
  *	@note Threshold of slope interrupt according to accel g range
  *    g-range           |      Slope threshold
  *  --------------------|----------------------------
- *     2g               |    (v_thres_u8 * 3.19) mg
- *     4g               |    (v_thres_u8 * 7.81) mg
- *     8g               |    (v_thres_u8 * 15.63) mg
- *     16g              |    (v_thres_u8 * 31.25) mg
+ *     2g               |    (thres_u8 * 3.19) mg
+ *     4g               |    (thres_u8 * 7.81) mg
+ *     8g               |    (thres_u8 * 15.63) mg
+ *     16g              |    (thres_u8 * 31.25) mg
  *
  *	@note : SLOW NO MOTION THRESHOLD
  *	@note Threshold of slow no motion interrupt according to accel g range
  *    g-range           |   slow no motion threshold
  *  --------------------|----------------------------
- *     2g               |    (v_thres_u8 * 3.19) mg
- *     4g               |    (v_thres_u8 * 7.81) mg
- *     8g               |    (v_thres_u8 * 15.63) mg
- *     16g              |    (v_thres_u8 * 31.25) mg
+ *     2g               |    (thres_u8 * 3.19) mg
+ *     4g               |    (thres_u8 * 7.81) mg
+ *     8g               |    (thres_u8 * 15.63) mg
+ *     16g              |    (thres_u8 * 31.25) mg
  *
  *
  *
@@ -5277,47 +5436,51 @@ u8 *v_thres_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_thres(u8 v_channel_u8,
-u8 v_thres_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_thres(u8 channel_u8,
+u8 thres_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
-		switch (v_channel_u8) {
+		switch (channel_u8) {
 		/* write the threshold value*/
 		case BMA2x2_LOW_THRES:
 			/*LOW THRESHOLD*/
-			v_data_u8 = v_thres_u8;
+			data_u8 = thres_u8;
 			com_rslt = p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_LOW_THRES_REG, &v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_LOW_THRES_ADDR, &data_u8,
+			BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
 		case BMA2x2_HIGH_THRES:
 			/*HIGH THRESHOLD*/
-			v_data_u8 = v_thres_u8;
+			data_u8 = thres_u8;
 			com_rslt = p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_HIGH_THRES_REG, &v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_HIGH_THRES_ADDR, &data_u8,
+			BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
 		case BMA2x2_SLOPE_THRES:
 			/*SLOPE THRESHOLD*/
-			v_data_u8 = v_thres_u8;
+			data_u8 = thres_u8;
 			com_rslt = p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_SLOPE_THRES_REG, &v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_SLOPE_THRES_ADDR, &data_u8,
+			BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
 		case BMA2x2_SLOW_NO_MOTION_THRES:
 			/*SLO NO MOT THRESHOLD*/
-			v_data_u8 = v_thres_u8;
+			data_u8 = thres_u8;
 			com_rslt = p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_SLOW_NO_MOTION_THRES_REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_SLOW_NO_MOTION_THRES_ADDR,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
 		default:
 			com_rslt = E_OUT_OF_RANGE;
@@ -5332,25 +5495,25 @@ u8 v_thres_u8)
  *	@note LOW_G_HYST  -> bit form 0 to 1
  *	@note HIGH_G_HYST  -> bit from 6 to 7
  *
- *  @param v_channel_u8: The value of hysteresis selection
- *     v_channel_u8   | result
+ *  @param channel_u8: The value of hysteresis selection
+ *     channel_u8   | result
  *   -----------------| ------------------
  *           0        | BMA2x2_ACCEL_LOW_G_HYST
  *           1        | BMA2x2_ACCEL_HIGH_G_HYST
  *
- *  @param v_hyst_u8: The hysteresis data
+ *  @param hyst_u8: The hysteresis data
  *
  *	@note LOW HYSTERESIS
- *	@note Hysteresis of low-g interrupt according to (v_hyst_u8 * 125)mg
+ *	@note Hysteresis of low-g interrupt according to (hyst_u8 * 125)mg
  *
  *	@note HIGH HYSTERESIS
  *	@note High hysteresis depends on the accel range selection
  *    g-range           |    High Hysteresis
  *  --------------------|----------------------------
- *     2g               |    (v_thres_u8 * 125) mg
- *     4g               |    (v_thres_u8 * 250) mg
- *     8g               |    (v_thres_u8 * 500) mg
- *     16g              |    (v_thres_u8 * 1000) mg
+ *     2g               |    (thres_u8 * 125) mg
+ *     4g               |    (thres_u8 * 250) mg
+ *     8g               |    (thres_u8 * 500) mg
+ *     16g              |    (thres_u8 * 1000) mg
  *
  *	@return results of bus communication function
  *	@retval 0 -> Success
@@ -5358,34 +5521,35 @@ u8 v_thres_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_low_high_g_hyst(u8 v_channel_u8,
-u8 *v_hyst_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_low_high_g_hyst(u8 channel_u8,
+u8 *hyst_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
-		switch (v_channel_u8) {
+		switch (channel_u8) {
 		/* read the hysteresis data */
 		case BMA2x2_LOW_G_HYST:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_LOW_G_HYST__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_hyst_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_LOW_G_HYST);
+			BMA2x2_LOW_G_HYST_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*hyst_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_LOW_G_HYST);
 		break;
 		case BMA2x2_HIGH_G_HYST:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_HIGH_G_HYST__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_hyst_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_HIGH_G_HYST);
+			BMA2x2_HIGH_G_HYST_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*hyst_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_HIGH_G_HYST);
 		break;
 		default:
 			com_rslt = E_OUT_OF_RANGE;
@@ -5400,25 +5564,25 @@ u8 *v_hyst_u8)
  *	@note LOW_G_HYST  -> bit form 0 to 1
  *	@note HIGH_G_HYST  -> bit from 6 to 7
  *
- *  @param v_channel_u8: The value of hysteresis selection
- *     v_channel_u8   | result
+ *  @param channel_u8: The value of hysteresis selection
+ *     channel_u8   | result
  *   -----------------| ------------------
  *           0        | BMA2x2_ACCEL_LOW_G_HYST
  *           1        | BMA2x2_ACCEL_HIGH_G_HYST
  *
- *  @param v_hyst_u8: The hysteresis data
+ *  @param hyst_u8: The hysteresis data
  *
  *	@note LOW HYSTERESIS
- *	@note Hysteresis of low-g interrupt according to (v_hyst_u8 * 125)mg
+ *	@note Hysteresis of low-g interrupt according to (hyst_u8 * 125)mg
  *
  *	@note HIGH HYSTERESIS
  *	@note High hysteresis depends on the accel range selection
  *    g-range           |    High Hysteresis
  *  --------------------|----------------------------
- *     2g               |    (v_thres_u8 * 125) mg
- *     4g               |    (v_thres_u8 * 250) mg
- *     8g               |    (v_thres_u8 * 500) mg
- *     16g              |    (v_thres_u8 * 1000) mg
+ *     2g               |    (thres_u8 * 125) mg
+ *     4g               |    (thres_u8 * 250) mg
+ *     8g               |    (thres_u8 * 500) mg
+ *     16g              |    (thres_u8 * 1000) mg
  *
  *	@return results of bus communication function
  *	@retval 0 -> Success
@@ -5426,41 +5590,42 @@ u8 *v_hyst_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_low_high_g_hyst(u8 v_channel_u8,
-u8 v_hyst_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_low_high_g_hyst(u8 channel_u8,
+u8 hyst_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
-		switch (v_channel_u8) {
+		switch (channel_u8) {
 		/* write the hysteresis data  */
 		case BMA2x2_LOW_G_HYST:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
-			(p_bma2x2->dev_addr, BMA2x2_LOW_G_HYST__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8, BMA2x2_LOW_G_HYST, v_hyst_u8);
+			(p_bma2x2->dev_addr, BMA2x2_LOW_G_HYST_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8, BMA2x2_LOW_G_HYST, hyst_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_LOW_G_HYST__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_LOW_G_HYST_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
 		case BMA2x2_HIGH_G_HYST:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_HIGH_G_HYST__REG, &v_data_u8,
-			C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8, BMA2x2_HIGH_G_HYST, v_hyst_u8);
+			BMA2x2_HIGH_G_HYST_REG, &data_u8,
+			BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8, BMA2x2_HIGH_G_HYST, hyst_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_HIGH_G_HYST__REG,
-			&v_data_u8,  C_BMA2x2_ONE_U8X);
+			BMA2x2_HIGH_G_HYST_REG,
+			&data_u8,  BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
 		default:
 			com_rslt = E_OUT_OF_RANGE;
@@ -5474,8 +5639,8 @@ u8 v_hyst_u8)
  *	low_g  mode in the registers 0x24 bit 2
  *
  *
- *	@param v_low_g_mode_u8: The value of Low_G mode
- *    g-v_low_g_mode_u8 |    result
+ *	@param low_g_mode_u8: The value of Low_G mode
+ *      low_g_mode_u8   |  g-result
  *  --------------------|----------------------------
  *     0x00             | LOW_G_SINGLE_AXIS_MODE
  *     0x01             | LOW_G_SUMMING_MODE
@@ -5487,21 +5652,22 @@ u8 v_hyst_u8)
  *
  *
 */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_low_g_mode(u8 *v_low_g_mode_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_low_g_mode(u8 *low_g_mode_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
 			/* read the low-g mode*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
-			(p_bma2x2->dev_addr, BMA2x2_LOW_G_INTR_MODE__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_low_g_mode_u8 = BMA2x2_GET_BITSLICE(v_data_u8,
+			(p_bma2x2->dev_addr, BMA2x2_LOW_G_INTR_MODE_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*low_g_mode_u8 = BMA2x2_GET_BITSLICE(data_u8,
 			BMA2x2_LOW_G_INTR_MODE);
 		}
 	return com_rslt;
@@ -5511,8 +5677,8 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_low_g_mode(u8 *v_low_g_mode_u8)
  *	low_g  mode in the registers 0x24 bit 2
  *
  *
- *	@param v_low_g_mode_u8: The value of Low_G mode
- *    v_low_g_mode_u8   |    result
+ *	@param low_g_mode_u8: The value of Low_G mode
+ *    low_g_mode_u8   |    result
  *  --------------------|----------------------------
  *     0x00             | LOW_G_SINGLE_AXIS_MODE
  *     0x01             | LOW_G_SUMMING_MODE
@@ -5524,12 +5690,13 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_low_g_mode(u8 *v_low_g_mode_u8)
  *
  *
 */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_low_g_mode(u8 v_low_g_mode_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_low_g_mode(u8 low_g_mode_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
@@ -5537,14 +5704,14 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_low_g_mode(u8 v_low_g_mode_u8)
 			/* write the low-g mode*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_LOW_G_INTR_MODE__REG, &v_data_u8,
-			C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8, BMA2x2_LOW_G_INTR_MODE, v_low_g_mode_u8);
+			BMA2x2_LOW_G_INTR_MODE_REG, &data_u8,
+			BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8, BMA2x2_LOW_G_INTR_MODE, low_g_mode_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_LOW_G_INTR_MODE__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_LOW_G_INTR_MODE_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		}
 	return com_rslt;
 }
@@ -5553,8 +5720,8 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_low_g_mode(u8 v_low_g_mode_u8)
  *	the tap duration in the register 0x2A bit form 0 to 2
  *
  *
- *	@param v_tap_durn_u8: The value of tap duration
- *    v_tap_durn_u8     |    result
+ *	@param tap_durn_u8: The value of tap duration
+ *    tap_durn_u8     |    result
  *  --------------------|----------------------------
  *     0x00             | TAP_DURN_50_MS
  *     0x01             | TAP_DURN_100_MS
@@ -5573,12 +5740,13 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_low_g_mode(u8 v_low_g_mode_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_tap_durn(u8 *v_tap_durn_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_tap_durn(u8 *tap_durn_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
@@ -5586,9 +5754,10 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_tap_durn(u8 *v_tap_durn_u8)
 			/* read the tap duration*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_TAP_DURN__REG, &v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_tap_durn_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_TAP_DURN);
+			BMA2x2_TAP_DURN_REG, &data_u8,
+			BMA2x2_GEN_READ_WRITE_LENGTH);
+			*tap_durn_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_TAP_DURN);
 		}
 	return com_rslt;
 }
@@ -5597,8 +5766,8 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_tap_durn(u8 *v_tap_durn_u8)
  *	the tap duration in the register 0x2A bit form 0 to 2
  *
  *
- *	@param v_tap_durn_u8: The value of tap duration
- *    v_tap_durn_u8     |    result
+ *	@param tap_durn_u8: The value of tap duration
+ *    tap_durn_u8     |    result
  *  --------------------|----------------------
  *     0x00             | TAP_DURN_50_MS
  *     0x01             | TAP_DURN_100_MS
@@ -5617,12 +5786,13 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_tap_durn(u8 *v_tap_durn_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_tap_durn(u8 v_tap_durn_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_tap_durn(u8 tap_durn_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
@@ -5630,13 +5800,14 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_tap_durn(u8 v_tap_durn_u8)
 			/* write the tap duration */
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC(
 			p_bma2x2->dev_addr,
-			BMA2x2_TAP_DURN__REG, &v_data_u8,
-			C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8, BMA2x2_TAP_DURN, v_tap_durn_u8);
+			BMA2x2_TAP_DURN_REG, &data_u8,
+			BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8, BMA2x2_TAP_DURN, tap_durn_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_TAP_DURN__REG, &v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_TAP_DURN_REG, &data_u8,
+			BMA2x2_GEN_READ_WRITE_LENGTH);
 		}
 	return com_rslt;
 }
@@ -5646,8 +5817,8 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_tap_durn(u8 v_tap_durn_u8)
  *
  *
  *
- *	@param v_tap_shock_u8: The value of tap shock
- *    v_tap_shock_u8    |    result
+ *	@param tap_shock_u8: The value of tap shock
+ *    tap_shock_u8    |    result
  *  --------------------|----------------------
  *     0x00             | TAP_SHOCK_50_MS
  *     0x01             | TAP_SHOCK_75_MS
@@ -5659,12 +5830,13 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_tap_durn(u8 v_tap_durn_u8)
  *
  *
 */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_tap_shock(u8 *v_tap_shock_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_tap_shock(u8 *tap_shock_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
@@ -5672,9 +5844,9 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_tap_shock(u8 *v_tap_shock_u8)
 			/* read tap shock value */
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_TAP_SHOCK_DURN__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_tap_shock_u8 = BMA2x2_GET_BITSLICE(v_data_u8,
+			BMA2x2_TAP_SHOCK_DURN_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*tap_shock_u8 = BMA2x2_GET_BITSLICE(data_u8,
 			BMA2x2_TAP_SHOCK_DURN);
 		}
 	return com_rslt;
@@ -5685,8 +5857,8 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_tap_shock(u8 *v_tap_shock_u8)
  *
  *
  *
- *	@param v_tap_shock_u8: The value of tap shock
- *    v_tap_shock_u8    |    result
+ *	@param tap_shock_u8: The value of tap shock
+ *    tap_shock_u8    |    result
  *  --------------------|----------------------
  *     0x00             | TAP_SHOCK_50_MS
  *     0x01             | TAP_SHOCK_75_MS
@@ -5698,12 +5870,13 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_tap_shock(u8 *v_tap_shock_u8)
  *
  *
 */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_tap_shock(u8 v_tap_shock_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_tap_shock(u8 tap_shock_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
@@ -5711,14 +5884,14 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_tap_shock(u8 v_tap_shock_u8)
 			/* write tap shock value*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_TAP_SHOCK_DURN__REG, &v_data_u8,
-			C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE(v_data_u8,
-			BMA2x2_TAP_SHOCK_DURN, v_tap_shock_u8);
+			BMA2x2_TAP_SHOCK_DURN_REG, &data_u8,
+			BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE(data_u8,
+			BMA2x2_TAP_SHOCK_DURN, tap_shock_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_TAP_SHOCK_DURN__REG, &v_data_u8,
-			C_BMA2x2_ONE_U8X);
+			BMA2x2_TAP_SHOCK_DURN_REG, &data_u8,
+			BMA2x2_GEN_READ_WRITE_LENGTH);
 		}
 	return com_rslt;
 }
@@ -5728,8 +5901,8 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_tap_shock(u8 v_tap_shock_u8)
  *
  *
  *
- *  @param  v_tap_quiet_u8 : The value of tap quiet
- *    v_tap_quiet_u8    |    result
+ *  @param  tap_quiet_u8 : The value of tap quiet
+ *    tap_quiet_u8    |    result
  *  --------------------|----------------------
  *     0x00             | TAP_QUIET_30_MS
  *     0x01             | TAP_QUIET_20_MS
@@ -5740,12 +5913,13 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_tap_shock(u8 v_tap_shock_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_tap_quiet(u8 *v_tap_quiet_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_tap_quiet(u8 *tap_quiet_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 		/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
@@ -5753,10 +5927,10 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_tap_quiet(u8 *v_tap_quiet_u8)
 			/* read the tap quiet value*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_TAP_QUIET_DURN__REG, &v_data_u8,
-			C_BMA2x2_ONE_U8X);
-			*v_tap_quiet_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_TAP_QUIET_DURN);
+			BMA2x2_TAP_QUIET_DURN_REG, &data_u8,
+			BMA2x2_GEN_READ_WRITE_LENGTH);
+			*tap_quiet_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_TAP_QUIET_DURN);
 		}
 	return com_rslt;
 }
@@ -5766,8 +5940,8 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_tap_quiet(u8 *v_tap_quiet_u8)
  *
  *
  *
- *  @param  v_tap_quiet_u8 : The value of tap quiet
- *    v_tap_quiet_u8    |    result
+ *  @param  tap_quiet_u8 : The value of tap quiet
+ *    tap_quiet_u8    |    result
  *  --------------------|----------------------
  *     0x00             | TAP_QUIET_30_MS
  *     0x01             | TAP_QUIET_20_MS
@@ -5778,12 +5952,13 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_tap_quiet(u8 *v_tap_quiet_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_tap_quiet(u8 v_tap_quiet_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_tap_quiet(u8 tap_quiet_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 		/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
@@ -5791,14 +5966,14 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_tap_quiet(u8 v_tap_quiet_u8)
 			/* write the tap quiet value*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_TAP_QUIET_DURN__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE(v_data_u8,
-			BMA2x2_TAP_QUIET_DURN, v_tap_quiet_u8);
+			BMA2x2_TAP_QUIET_DURN_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE(data_u8,
+			BMA2x2_TAP_QUIET_DURN, tap_quiet_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_TAP_QUIET_DURN__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_TAP_QUIET_DURN_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		}
 	return com_rslt;
 }
@@ -5808,14 +5983,15 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_tap_quiet(u8 v_tap_quiet_u8)
  *
  *
  *
- *  @param v_tap_thres_u8 : The value of tap threshold
- *	@note Tap threshold of single and double tap corresponding to accel range
+ *  @param tap_thres_u8 : The value of tap threshold
+ *  @note Tap threshold of single and double tap corresponding
+ *     to accel range
  *     range            |    Tap threshold
  *  --------------------|----------------------
- *     2g               | (v_tap_thres_u8 * 62.5)mg
- *     4g               | (v_tap_thres_u8 * 125)mg
- *     8g               | (v_tap_thres_u8 * 250)mg
- *     16g              | (v_tap_thres_u8 * 500)mg
+ *     2g               | (tap_thres_u8 * 62.5)mg
+ *     4g               | (tap_thres_u8 * 125)mg
+ *     8g               | (tap_thres_u8 * 250)mg
+ *     16g              | (tap_thres_u8 * 500)mg
  *
  *
  *	@return results of bus communication function
@@ -5824,12 +6000,13 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_tap_quiet(u8 v_tap_quiet_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_tap_thres(u8 *v_tap_thres_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_tap_thres(u8 *tap_thres_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
@@ -5837,10 +6014,10 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_tap_thres(u8 *v_tap_thres_u8)
 			/* read the tap threshold*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_TAP_THRES__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_tap_thres_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_TAP_THRES);
+			BMA2x2_TAP_THRES_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*tap_thres_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_TAP_THRES);
 		}
 	return com_rslt;
 }
@@ -5850,14 +6027,14 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_tap_thres(u8 *v_tap_thres_u8)
  *
  *
  *
- *  @param v_tap_thres_u8 : The value of tap threshold
+ *  @param tap_thres_u8 : The value of tap threshold
  *	@note Tap threshold of single and double tap corresponding to accel range
  *     range            |    Tap threshold
  *  --------------------|----------------------
- *     2g               | (v_tap_thres_u8 * 62.5)mg
- *     4g               | (v_tap_thres_u8 * 125)mg
- *     8g               | (v_tap_thres_u8 * 250)mg
- *     16g              | (v_tap_thres_u8 * 500)mg
+ *     2g               | (tap_thres_u8 * 62.5)mg
+ *     4g               | (tap_thres_u8 * 125)mg
+ *     8g               | (tap_thres_u8 * 250)mg
+ *     16g              | (tap_thres_u8 * 500)mg
  *
  *
  *	@return results of bus communication function
@@ -5866,24 +6043,27 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_tap_thres(u8 *v_tap_thres_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_tap_thres(u8 v_tap_thres_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_tap_thres(u8 tap_thres_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_TAP_THRES__REG, &v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8, BMA2x2_TAP_THRES, v_tap_thres_u8);
+			BMA2x2_TAP_THRES_REG, &data_u8,
+			BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8, BMA2x2_TAP_THRES, tap_thres_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_TAP_THRES__REG, &v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_TAP_THRES_REG, &data_u8,
+			BMA2x2_GEN_READ_WRITE_LENGTH);
 		}
 	return com_rslt;
 }
@@ -5893,8 +6073,8 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_tap_thres(u8 v_tap_thres_u8)
  *
  *
  *
- *  @param   *v_tap_sample_u8 : The value of tap sample
- *     v_tap_sample_u8  |    result
+ *  @param   *tap_sample_u8 : The value of tap sample
+ *     tap_sample_u8  |    result
  *  --------------------|----------------------
  *     0x00             | 2 samples
  *     0x01             | 4 samples
@@ -5908,12 +6088,13 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_tap_thres(u8 v_tap_thres_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_tap_sample(u8 *v_tap_sample_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_tap_sample(u8 *tap_sample_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 		/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
@@ -5921,9 +6102,10 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_tap_sample(u8 *v_tap_sample_u8)
 			/* read tap samples */
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_TAP_SAMPLES__REG, &v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_tap_sample_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_TAP_SAMPLES);
+			BMA2x2_TAP_SAMPLES_REG, &data_u8,
+			BMA2x2_GEN_READ_WRITE_LENGTH);
+			*tap_sample_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_TAP_SAMPLES);
 		}
 	return com_rslt;
 }
@@ -5933,8 +6115,8 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_tap_sample(u8 *v_tap_sample_u8)
  *
  *
  *
- *  @param   *v_tap_sample_u8 : The value of tap sample
- *     v_tap_sample_u8  |    result
+ *  @param   *tap_sample_u8 : The value of tap sample
+ *     tap_sample_u8  |    result
  *  --------------------|----------------------
  *     0x00             | 2 samples
  *     0x01             | 4 samples
@@ -5948,25 +6130,27 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_tap_sample(u8 *v_tap_sample_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_tap_sample(u8 v_tap_sample_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_tap_sample(u8 tap_sample_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
 			/* write tap samples */
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
-			(p_bma2x2->dev_addr, BMA2x2_TAP_SAMPLES__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8, BMA2x2_TAP_SAMPLES, v_tap_sample_u8);
+			(p_bma2x2->dev_addr, BMA2x2_TAP_SAMPLES_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8, BMA2x2_TAP_SAMPLES, tap_sample_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_TAP_SAMPLES__REG, &v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_TAP_SAMPLES_REG, &data_u8,
+			BMA2x2_GEN_READ_WRITE_LENGTH);
 		}
 	return com_rslt;
 }
@@ -5976,8 +6160,8 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_tap_sample(u8 v_tap_sample_u8)
  *
  *
  *
- *  @param v_orient_mode_u8 : The value of orient mode
- *     v_orient_mode_u8 |    result
+ *  @param orient_mode_u8 : The value of orient mode
+ *     orient_mode_u8 |    result
  *  --------------------|------------------
  *     0x00             | symmetrical
  *     0x01             | high asymmetrical
@@ -5992,21 +6176,23 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_tap_sample(u8 v_tap_sample_u8)
  *
  *
 */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_orient_mode(u8 *v_orient_mode_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_orient_mode(u8 *orient_mode_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC(
 			p_bma2x2->dev_addr,
-			BMA2x2_ORIENT_MODE__REG, &v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_orient_mode_u8 = BMA2x2_GET_BITSLICE(
-			v_data_u8, BMA2x2_ORIENT_MODE);
+			BMA2x2_ORIENT_MODE_REG, &data_u8,
+			BMA2x2_GEN_READ_WRITE_LENGTH);
+			*orient_mode_u8 = BMA2x2_GET_BITSLICE(
+			data_u8, BMA2x2_ORIENT_MODE);
 		}
 	return com_rslt;
 }
@@ -6016,8 +6202,8 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_orient_mode(u8 *v_orient_mode_u8)
  *
  *
  *
- *  @param v_orient_mode_u8 : The value of orient mode
- *     v_orient_mode_u8 |    result
+ *  @param orient_mode_u8 : The value of orient mode
+ *     orient_mode_u8 |    result
  *  --------------------|------------------
  *     0x00             | symmetrical
  *     0x01             | high asymmetrical
@@ -6032,24 +6218,27 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_orient_mode(u8 *v_orient_mode_u8)
  *
  *
 */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_orient_mode(u8 v_orient_mode_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_orient_mode(u8 orient_mode_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ORIENT_MODE__REG, &v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE(v_data_u8,
-			BMA2x2_ORIENT_MODE, v_orient_mode_u8);
+			BMA2x2_ORIENT_MODE_REG, &data_u8,
+			BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE(data_u8,
+			BMA2x2_ORIENT_MODE, orient_mode_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ORIENT_MODE__REG, &v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_ORIENT_MODE_REG, &data_u8,
+			BMA2x2_GEN_READ_WRITE_LENGTH);
 		}
 	return com_rslt;
 }
@@ -6059,8 +6248,8 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_orient_mode(u8 v_orient_mode_u8)
  *
  *
  *
- *	@param v_orient_block_u8 : The value of orient block
- *     v_orient_mode_u8 |    result
+ *	@param orient_block_u8 : The value of orient block
+ *     orient_mode_u8 |    result
  *  --------------------|------------------
  *     0x00             | no blocking
  *     0x01             | theta blocking or
@@ -6081,12 +6270,13 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_orient_mode(u8 v_orient_mode_u8)
  *
  */
 BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_orient_block(
-u8 *v_orient_block_u8)
+u8 *orient_block_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 		/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
@@ -6094,9 +6284,10 @@ u8 *v_orient_block_u8)
 			/* Read the orient block data */
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ORIENT_BLOCK__REG, &v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_orient_block_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_ORIENT_BLOCK);
+			BMA2x2_ORIENT_BLOCK_REG, &data_u8,
+			BMA2x2_GEN_READ_WRITE_LENGTH);
+			*orient_block_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_ORIENT_BLOCK);
 		}
 	return com_rslt;
 }
@@ -6106,8 +6297,8 @@ u8 *v_orient_block_u8)
  *
  *
  *
- *	@param v_orient_block_u8 : The value of orient block
- *     v_orient_mode_u8 |    result
+ *	@param orient_block_u8 : The value of orient block
+ *     orient_mode_u8 |    result
  *  --------------------|------------------
  *     0x00             | no blocking
  *     0x01             | theta blocking or
@@ -6127,12 +6318,13 @@ u8 *v_orient_block_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_orient_block(u8 v_orient_block_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_orient_block(u8 orient_block_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
@@ -6140,12 +6332,14 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_orient_block(u8 v_orient_block_u8)
 			/* write the orient block data */
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ORIENT_BLOCK__REG, &v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8, BMA2x2_ORIENT_BLOCK, v_orient_block_u8);
+			BMA2x2_ORIENT_BLOCK_REG, &data_u8,
+			BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8, BMA2x2_ORIENT_BLOCK, orient_block_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ORIENT_BLOCK__REG, &v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_ORIENT_BLOCK_REG, &data_u8,
+			BMA2x2_GEN_READ_WRITE_LENGTH);
 		}
 	return com_rslt;
 }
@@ -6155,7 +6349,7 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_orient_block(u8 v_orient_block_u8)
  *
  *
  *
- *  @param v_orient_hyst_u8 : The value of orient hysteresis
+ *  @param orient_hyst_u8 : The value of orient hysteresis
  *
  *
  *
@@ -6165,12 +6359,13 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_orient_block(u8 v_orient_block_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_orient_hyst(u8 *v_orient_hyst_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_orient_hyst(u8 *orient_hyst_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
@@ -6178,9 +6373,10 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_orient_hyst(u8 *v_orient_hyst_u8)
 			/* read the orient hysteresis data*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ORIENT_HYST__REG, &v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_orient_hyst_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_ORIENT_HYST);
+			BMA2x2_ORIENT_HYST_REG, &data_u8,
+			BMA2x2_GEN_READ_WRITE_LENGTH);
+			*orient_hyst_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_ORIENT_HYST);
 		}
 	return com_rslt;
 }
@@ -6190,7 +6386,7 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_orient_hyst(u8 *v_orient_hyst_u8)
  *
  *
  *
- *  @param v_orient_hyst_u8 : The value of orient hysteresis
+ *  @param orient_hyst_u8 : The value of orient hysteresis
  *
  *
  *
@@ -6200,12 +6396,13 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_orient_hyst(u8 *v_orient_hyst_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_orient_hyst(u8 v_orient_hyst_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_orient_hyst(u8 orient_hyst_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
@@ -6213,13 +6410,14 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_orient_hyst(u8 v_orient_hyst_u8)
 			/* write the orient hysteresis data */
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ORIENT_HYST__REG, &v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE(v_data_u8,
-			BMA2x2_ORIENT_HYST, v_orient_hyst_u8);
+			BMA2x2_ORIENT_HYST_REG, &data_u8,
+			BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE(data_u8,
+			BMA2x2_ORIENT_HYST, orient_hyst_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC(
 			p_bma2x2->dev_addr,
-			BMA2x2_ORIENT_HYST__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_ORIENT_HYST_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		}
 	return com_rslt;
 }
@@ -6229,8 +6427,8 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_orient_hyst(u8 v_orient_hyst_u8)
  *	@note ORIENT_THETA -> register 0x2D bit 0 to 5
  *	@note FLAT_THETA   -> register 0x2E bit 0 to 5
  *
- *  @param v_channel_u8: The value of theta selection
- *     v_channel_u8     |    result
+ *  @param channel_u8: The value of theta selection
+ *     channel_u8     |    result
  *  --------------------|------------------
  *     0x00             | BMA2x2_ACCEL_ORIENT_THETA
  *     0x01             | BMA2x2_ACCEL_FLAT_THETA
@@ -6239,7 +6437,7 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_orient_hyst(u8 v_orient_hyst_u8)
  * @note ORIENT_THETA : Defines threshold for detection of flat position
  *                in range from 0 deg to 44.8 deg
  *
- *  @param v_theta_u8: The value of theta
+ *  @param theta_u8: The value of theta
  *
  *	@return results of bus communication function
  *	@retval 0 -> Success
@@ -6247,35 +6445,36 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_orient_hyst(u8 v_orient_hyst_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_theta(u8 v_channel_u8,
-u8 *v_theta_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_theta(u8 channel_u8,
+u8 *theta_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
-		switch (v_channel_u8) {
+		switch (channel_u8) {
 		/* write theta value*/
 		case BMA2x2_ORIENT_THETA:
 			/*ORIENT THETA*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_THETA_BLOCK__REG, &v_data_u8,
-			C_BMA2x2_ONE_U8X);
-			*v_theta_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_THETA_BLOCK);
+			BMA2x2_THETA_BLOCK_REG, &data_u8,
+			BMA2x2_GEN_READ_WRITE_LENGTH);
+			*theta_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_THETA_BLOCK);
 		break;
 		case BMA2x2_FLAT_THETA:
 			/*FLAT THETA*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_THETA_FLAT__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_theta_u8 = v_data_u8;
+			BMA2x2_THETA_FLAT_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*theta_u8 = data_u8;
 		break;
 		default:
 			com_rslt = E_OUT_OF_RANGE;
@@ -6290,8 +6489,8 @@ u8 *v_theta_u8)
  *	@note ORIENT_THETA -> register 0x2D bit 0 to 5
  *	@note FLAT_THETA   -> register 0x2E bit 0 to 5
  *
- *  @param v_channel_u8: The value of theta selection
- *     v_channel_u8     |    result
+ *  @param channel_u8: The value of theta selection
+ *     channel_u8     |    result
  *  --------------------|------------------
  *     0x00             | BMA2x2_ACCEL_ORIENT_THETA
  *     0x01             | BMA2x2_ACCEL_FLAT_THETA
@@ -6300,7 +6499,7 @@ u8 *v_theta_u8)
  * @note ORIENT_THETA : Defines threshold for detection of flat position
  *                in range from 0 deg to 44.8 deg
  *
- *  @param v_theta_u8: The value of theta
+ *  @param theta_u8: The value of theta
  *
  *	@return results of bus communication function
  *	@retval 0 -> Success
@@ -6308,39 +6507,40 @@ u8 *v_theta_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_theta(u8 v_channel_u8,
-u8 v_theta_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_theta(u8 channel_u8,
+u8 theta_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
-		switch (v_channel_u8) {
+		switch (channel_u8) {
 		/* write flat value */
 		case BMA2x2_ORIENT_THETA:
 			/*ORIENT THETA*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_THETA_BLOCK__REG, &v_data_u8,
-			C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE(v_data_u8,
-			BMA2x2_THETA_BLOCK, v_theta_u8);
+			BMA2x2_THETA_BLOCK_REG, &data_u8,
+			BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE(data_u8,
+			BMA2x2_THETA_BLOCK, theta_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_THETA_BLOCK__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_THETA_BLOCK_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
 		case BMA2x2_FLAT_THETA:
 			/*FLAT THETA*/
-			v_data_u8 = v_theta_u8;
+			data_u8 = theta_u8;
 			com_rslt = p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_THETA_FLAT__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_THETA_FLAT_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
 		default:
 			com_rslt = E_OUT_OF_RANGE;
@@ -6354,8 +6554,8 @@ u8 v_theta_u8)
  *  the interrupt enable of orient ud_enable in the register 0x2D bit 6
  *
  *
- *  @param v_orient_enable_u8 : The value of orient ud_enable
- *     v_orient_enable_u8     |    result
+ *  @param orient_enable_u8 : The value of orient ud_enable
+ *     orient_enable_u8     |    result
  *  ------------------------- |------------------
  *     0x00                   | Generates Interrupt
  *     0x01                   | Do not generate interrupt
@@ -6368,22 +6568,23 @@ u8 v_theta_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_orient_enable(u8 *v_orient_enable_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_orient_enable(u8 *orient_enable_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ORIENT_UD_ENABLE__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_orient_enable_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_ORIENT_UD_ENABLE);
+			BMA2x2_ORIENT_UD_ENABLE_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*orient_enable_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_ORIENT_UD_ENABLE);
 		}
 	return com_rslt;
 }
@@ -6392,8 +6593,8 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_orient_enable(u8 *v_orient_enable_u8)
  *  the interrupt enable of orient ud_enable in the register 0x2D bit 6
  *
  *
- *  @param v_orient_enable_u8 : The value of orient ud_enable
- *     v_orient_enable_u8     |    result
+ *  @param orient_enable_u8 : The value of orient ud_enable
+ *     orient_enable_u8     |    result
  *  ------------------------- |------------------
  *     0x00                   | Generates Interrupt
  *     0x01                   | Do not generate interrupt
@@ -6406,26 +6607,27 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_orient_enable(u8 *v_orient_enable_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_orient_enable(u8 v_orient_enable_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_orient_enable(u8 orient_enable_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ORIENT_UD_ENABLE__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE(v_data_u8,
-			BMA2x2_ORIENT_UD_ENABLE, v_orient_enable_u8);
+			BMA2x2_ORIENT_UD_ENABLE_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE(data_u8,
+			BMA2x2_ORIENT_UD_ENABLE, orient_enable_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ORIENT_UD_ENABLE__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_ORIENT_UD_ENABLE_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		}
 	return com_rslt;
 }
@@ -6437,7 +6639,7 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_orient_enable(u8 v_orient_enable_u8)
  *
  *
  *
- *  @param v_flat_hyst_u8 : The value of flat hysteresis
+ *  @param flat_hyst_u8 : The value of flat hysteresis
  *
  *
  *
@@ -6447,21 +6649,23 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_orient_enable(u8 v_orient_enable_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_flat_hyst(u8 *v_flat_hyst_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_flat_hyst(u8 *flat_hyst_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_FLAT_HYST__REG, &v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_flat_hyst_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_FLAT_HYST);
+			BMA2x2_FLAT_HYST_REG, &data_u8,
+			BMA2x2_GEN_READ_WRITE_LENGTH);
+			*flat_hyst_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_FLAT_HYST);
 		}
 	return com_rslt;
 }
@@ -6473,7 +6677,7 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_flat_hyst(u8 *v_flat_hyst_u8)
  *
  *
  *
- *  @param v_flat_hyst_u8 : The value of flat hysteresis
+ *  @param flat_hyst_u8 : The value of flat hysteresis
  *
  *
  *
@@ -6483,25 +6687,27 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_flat_hyst(u8 *v_flat_hyst_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_flat_hyst(u8 v_flat_hyst_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_flat_hyst(u8 flat_hyst_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC(
 			p_bma2x2->dev_addr,
-			BMA2x2_FLAT_HYST__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8, BMA2x2_FLAT_HYST, v_flat_hyst_u8);
+			BMA2x2_FLAT_HYST_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8, BMA2x2_FLAT_HYST, flat_hyst_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_FLAT_HYST__REG, &v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_FLAT_HYST_REG, &data_u8,
+			BMA2x2_GEN_READ_WRITE_LENGTH);
 		}
 	return com_rslt;
 }
@@ -6511,8 +6717,8 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_flat_hyst(u8 v_flat_hyst_u8)
  *	in the register 0x2F bit 4 and 5
  *
  *
- *  @param  v_flat_hold_time_u8 : The value of flat hold time
- *     v_flat_hold_time_u8    |    result
+ *  @param  flat_hold_time_u8 : The value of flat hold time
+ *     flat_hold_time_u8    |    result
  *  ------------------------- |------------------
  *     0x00                   | 0ms
  *     0x01                   | 512ms
@@ -6528,12 +6734,13 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_flat_hyst(u8 v_flat_hyst_u8)
  *
  */
 BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_flat_hold_time(
-u8 *v_flat_hold_time_u8)
+u8 *flat_hold_time_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
@@ -6541,10 +6748,10 @@ u8 *v_flat_hold_time_u8)
 			/* read the flat hold time */
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_FLAT_HOLD_TIME__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_flat_hold_time_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_FLAT_HOLD_TIME);
+			BMA2x2_FLAT_HOLD_TIME_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*flat_hold_time_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_FLAT_HOLD_TIME);
 		}
 	return com_rslt;
 }
@@ -6554,8 +6761,8 @@ u8 *v_flat_hold_time_u8)
  *	in the register 0x2F bit 4 and 5
  *
  *
- *  @param  v_flat_hold_time_u8 : The value of flat hold time
- *     v_flat_hold_time_u8    |    result
+ *  @param  flat_hold_time_u8 : The value of flat hold time
+ *     flat_hold_time_u8    |    result
  *  ------------------------- |------------------
  *     0x00                   | 0ms
  *     0x01                   | 512ms
@@ -6571,12 +6778,13 @@ u8 *v_flat_hold_time_u8)
  *
  */
 BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_flat_hold_time(
-u8 v_flat_hold_time_u8)
+u8 flat_hold_time_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
@@ -6584,14 +6792,14 @@ u8 v_flat_hold_time_u8)
 			/* write the flat hold time */
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_FLAT_HOLD_TIME__REG, &v_data_u8,
-			C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8, BMA2x2_FLAT_HOLD_TIME, v_flat_hold_time_u8);
+			BMA2x2_FLAT_HOLD_TIME_REG, &data_u8,
+			BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8, BMA2x2_FLAT_HOLD_TIME, flat_hold_time_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_FLAT_HOLD_TIME__REG, &v_data_u8,
-			C_BMA2x2_ONE_U8X);
+			BMA2x2_FLAT_HOLD_TIME_REG, &data_u8,
+			BMA2x2_GEN_READ_WRITE_LENGTH);
 		}
 	return com_rslt;
 }
@@ -6615,10 +6823,11 @@ u8 v_flat_hold_time_u8)
 BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_fifo_wml_trig(
 u8 *fifo_wml_trig)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
@@ -6626,10 +6835,10 @@ u8 *fifo_wml_trig)
 			/* read the fifo water mark trigger */
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_FIFO_WML_TRIG_RETAIN__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_FIFO_WML_TRIG_RETAIN_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 			*fifo_wml_trig = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_FIFO_WML_TRIG_RETAIN);
+			(data_u8, BMA2x2_FIFO_WML_TRIG_RETAIN);
 		}
 	return com_rslt;
 }
@@ -6653,27 +6862,28 @@ u8 *fifo_wml_trig)
 BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_fifo_wml_trig(
 u8 fifo_wml_trig)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
-		if (fifo_wml_trig < C_BMA2x2_THIRTYTWO_U8X) {
+		if (fifo_wml_trig < BMA2x2_FIFO_WML_RANGE) {
 			/* write the fifo watermark trigger*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_FIFO_WML_TRIG_RETAIN__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8, BMA2x2_FIFO_WML_TRIG_RETAIN,
+			BMA2x2_FIFO_WML_TRIG_RETAIN_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8, BMA2x2_FIFO_WML_TRIG_RETAIN,
 			fifo_wml_trig);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_FIFO_WML_TRIG_RETAIN__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_FIFO_WML_TRIG_RETAIN_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		} else {
 		com_rslt = E_OUT_OF_RANGE;
 		}
@@ -6686,8 +6896,8 @@ u8 fifo_wml_trig)
  *
  *
  *
- *  @param v_selftest_axis_u8 : The value of selftest axis
- *     v_selftest_axis_u8     |    result
+ *  @param selftest_axis_u8 : The value of selftest axis
+ *     selftest_axis_u8     |    result
  *  ------------------------- |------------------
  *     0x00                   | self test disable
  *     0x01                   | x-axis
@@ -6702,12 +6912,13 @@ u8 fifo_wml_trig)
  *
  */
 BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_selftest_axis(
-u8 *v_selftest_axis_u8)
+u8 *selftest_axis_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
@@ -6715,10 +6926,10 @@ u8 *v_selftest_axis_u8)
 			/* read the self test axis*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_SELFTEST__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_selftest_axis_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_ENABLE_SELFTEST);
+			BMA2x2_ENABLE_SELFTEST_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*selftest_axis_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_ENABLE_SELFTEST);
 		}
 	return com_rslt;
 }
@@ -6728,8 +6939,8 @@ u8 *v_selftest_axis_u8)
  *
  *
  *
- *  @param v_selftest_axis_u8 : The value of selftest axis
- *     v_selftest_axis_u8     |    result
+ *  @param selftest_axis_u8 : The value of selftest axis
+ *     selftest_axis_u8     |    result
  *  ------------------------- |------------------
  *     0x00                   | self test disable
  *     0x01                   | x-axis
@@ -6744,28 +6955,29 @@ u8 *v_selftest_axis_u8)
  *
  */
 BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_selftest_axis(
-u8 v_selftest_axis_u8)
+u8 selftest_axis_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
-		if (v_selftest_axis_u8 < C_BMA2x2_FOUR_U8X) {
+		if (selftest_axis_u8 < BMA2x2_SELF_TEST_AXIS_RANGE) {
 			/* write the self test axis*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_SELFTEST__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8, BMA2x2_ENABLE_SELFTEST, v_selftest_axis_u8);
+			BMA2x2_ENABLE_SELFTEST_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8, BMA2x2_ENABLE_SELFTEST, selftest_axis_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_SELFTEST__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_ENABLE_SELFTEST_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		 } else {
 		com_rslt = E_OUT_OF_RANGE;
 		}
@@ -6778,8 +6990,8 @@ u8 v_selftest_axis_u8)
  *
  *
  *
- *  @param v_selftest_sign_u8 : The value of self test sign
- *     v_selftest_sign_u8     |    result
+ *  @param selftest_sign_u8 : The value of self test sign
+ *     selftest_sign_u8     |    result
  *  ------------------------- |------------------
  *     0x00                   | negative sign
  *     0x01                   | positive sign
@@ -6792,12 +7004,13 @@ u8 v_selftest_axis_u8)
  *
  */
 BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_selftest_sign(
-u8 *v_selftest_sign_u8)
+u8 *selftest_sign_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
@@ -6805,10 +7018,10 @@ u8 *v_selftest_sign_u8)
 			/* read self test sign */
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_NEG_SELFTEST__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_selftest_sign_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_NEG_SELFTEST);
+			BMA2x2_NEG_SELFTEST_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*selftest_sign_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_NEG_SELFTEST);
 		}
 	return com_rslt;
 }
@@ -6818,8 +7031,8 @@ u8 *v_selftest_sign_u8)
  *
  *
  *
- *  @param v_selftest_sign_u8 : The value of self test sign
- *     v_selftest_sign_u8     |    result
+ *  @param selftest_sign_u8 : The value of self test sign
+ *     selftest_sign_u8     |    result
  *  ------------------------- |------------------
  *     0x00                   | negative sign
  *     0x01                   | positive sign
@@ -6832,28 +7045,30 @@ u8 *v_selftest_sign_u8)
  *
  */
 BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_selftest_sign(
-u8 v_selftest_sign_u8)
+u8 selftest_sign_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
-		if (v_selftest_sign_u8 < C_BMA2x2_TWO_U8X) {
+		if (selftest_sign_u8 <
+		BMA2x2_SELF_TEST_SIGN_RANGE) {
 			/* write self test sign */
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_NEG_SELFTEST__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8, BMA2x2_NEG_SELFTEST, v_selftest_sign_u8);
+			BMA2x2_NEG_SELFTEST_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8, BMA2x2_NEG_SELFTEST, selftest_sign_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_NEG_SELFTEST__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_NEG_SELFTEST_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		} else {
 		com_rslt = E_OUT_OF_RANGE;
 		}
@@ -6865,8 +7080,8 @@ u8 v_selftest_sign_u8)
  * the nvm program mode(nvm_prog_mode)in the register 0x33 bit 0
  *
  *
- *  @param  v_nvmprog_mode_u8 : The value of nvm program mode
- *     v_nvmprog_mode_u8      |    result
+ *  @param  nvmprog_mode_u8 : The value of nvm program mode
+ *     nvmprog_mode_u8      |    result
  *  ------------------------- |------------------
  *     0x00                   | Disable program mode
  *     0x01                   | Enable program mode
@@ -6878,22 +7093,23 @@ u8 v_selftest_sign_u8)
  *
  */
 BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_nvmprog_mode(
-u8 *v_nvmprog_mode_u8)
+u8 *nvmprog_mode_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
-		return  E_BMA2x2_NULL_PTR;
+		com_rslt = E_BMA2x2_NULL_PTR;
 	} else {
 		/* read the nvm program mode*/
 		com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 		(p_bma2x2->dev_addr,
-		BMA2x2_UNLOCK_EE_PROG_MODE__REG,
-		&v_data_u8, C_BMA2x2_ONE_U8X);
-		*v_nvmprog_mode_u8 = BMA2x2_GET_BITSLICE
-		(v_data_u8, BMA2x2_UNLOCK_EE_PROG_MODE);
+		BMA2x2_UNLOCK_EE_PROG_MODE_REG,
+		&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+		*nvmprog_mode_u8 = BMA2x2_GET_BITSLICE
+		(data_u8, BMA2x2_UNLOCK_EE_PROG_MODE);
 	}
 	return com_rslt;
 }
@@ -6902,8 +7118,8 @@ u8 *v_nvmprog_mode_u8)
  * the nvm program mode(nvm_prog_mode)in the register 0x33 bit 0
  *
  *
- *  @param  v_nvmprog_mode_u8 : The value of nvm program mode
- *     v_nvmprog_mode_u8      |    result
+ *  @param  nvmprog_mode_u8 : The value of nvm program mode
+ *     nvmprog_mode_u8      |    result
  *  ------------------------- |------------------
  *     0x00                   | Disable program mode
  *     0x01                   | Enable program mode
@@ -6914,27 +7130,28 @@ u8 *v_nvmprog_mode_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_nvmprog_mode(u8 v_nvmprog_mode_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_nvmprog_mode(u8 nvmprog_mode_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
-		return E_BMA2x2_NULL_PTR;
+		com_rslt = E_BMA2x2_NULL_PTR;
 	} else {
 		/* write the nvm program mode*/
 		com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 		(p_bma2x2->dev_addr,
-		BMA2x2_UNLOCK_EE_PROG_MODE__REG,
-		&v_data_u8, C_BMA2x2_ONE_U8X);
-		v_data_u8 = BMA2x2_SET_BITSLICE
-		(v_data_u8, BMA2x2_UNLOCK_EE_PROG_MODE, v_nvmprog_mode_u8);
+		BMA2x2_UNLOCK_EE_PROG_MODE_REG,
+		&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+		data_u8 = BMA2x2_SET_BITSLICE
+		(data_u8, BMA2x2_UNLOCK_EE_PROG_MODE, nvmprog_mode_u8);
 		com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 		(p_bma2x2->dev_addr,
-		BMA2x2_UNLOCK_EE_PROG_MODE__REG,
-		&v_data_u8, C_BMA2x2_ONE_U8X);
+		BMA2x2_UNLOCK_EE_PROG_MODE_REG,
+		&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 	}
 	return com_rslt;
 }
@@ -6945,8 +7162,8 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_nvmprog_mode(u8 v_nvmprog_mode_u8)
  *
  *
  *
- *  @param v_nvprog_trig_u8: The value of nvm program trig
- *     v_nvprog_trig_u8       |    result
+ *  @param nvprog_trig_u8: The value of nvm program trig
+ *     nvprog_trig_u8       |    result
  *  ------------------------- |------------------
  *     0x00                   | Do not trigger nvm program
  *     0x01                   | Trigger nvm program
@@ -6958,27 +7175,28 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_nvmprog_mode(u8 v_nvmprog_mode_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_nvprog_trig(u8 v_nvprog_trig_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_nvprog_trig(u8 nvprog_trig_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
-		return E_BMA2x2_NULL_PTR;
+		com_rslt = E_BMA2x2_NULL_PTR;
 	} else {
 		/* set the nvm program trigger */
 		com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 		(p_bma2x2->dev_addr,
-		BMA2x2_START_EE_PROG_TRIG__REG,
-		&v_data_u8, C_BMA2x2_ONE_U8X);
-		v_data_u8 = BMA2x2_SET_BITSLICE
-		(v_data_u8, BMA2x2_START_EE_PROG_TRIG, v_nvprog_trig_u8);
+		BMA2x2_START_EE_PROG_TRIG_REG,
+		&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+		data_u8 = BMA2x2_SET_BITSLICE
+		(data_u8, BMA2x2_START_EE_PROG_TRIG, nvprog_trig_u8);
 		com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 		(p_bma2x2->dev_addr,
-		BMA2x2_START_EE_PROG_TRIG__REG,
-		&v_data_u8, C_BMA2x2_ONE_U8X);
+		BMA2x2_START_EE_PROG_TRIG_REG,
+		&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 	}
 	return com_rslt;
 }
@@ -6987,8 +7205,8 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_nvprog_trig(u8 v_nvprog_trig_u8)
  * the nvm program ready in the register bit 2
  *
  *
- *  @param v_nvprog_ready_u8: The value of nvm program ready
- *     v_nvprog_ready_u8      |    result
+ *  @param nvprog_ready_u8: The value of nvm program ready
+ *     nvprog_ready_u8      |    result
  *  ------------------------- |------------------
  *     0x00                   | nvm write/update operation is in progress
  *     0x01                   | nvm is ready to accept a new write
@@ -7001,23 +7219,24 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_nvprog_trig(u8 v_nvprog_trig_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_nvmprog_ready(u8 *v_nvprog_ready_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_nvmprog_ready(u8 *nvprog_ready_u8)
 {
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
-		return E_BMA2x2_NULL_PTR;
+		com_rslt = E_BMA2x2_NULL_PTR;
 	} else {
 		/* read the nvm program ready*/
 		com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 		(p_bma2x2->dev_addr,
-		BMA2x2_EE_PROG_READY__REG,
-		&v_data_u8, C_BMA2x2_ONE_U8X);
-		*v_nvprog_ready_u8 = BMA2x2_GET_BITSLICE
-		(v_data_u8, BMA2x2_EE_PROG_READY);
+		BMA2x2_EE_PROG_READY_REG,
+		&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+		*nvprog_ready_u8 = BMA2x2_GET_BITSLICE
+		(data_u8, BMA2x2_EE_PROG_READY);
 	}
 	return com_rslt;
 }
@@ -7026,8 +7245,8 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_nvmprog_ready(u8 *v_nvprog_ready_u8)
  * the nvm program ready in the register bit 2
  *
  *
- *  @param v_nvprog_remain_u8: The value of nvm program ready
- *     v_nvprog_remain_u8     |    result
+ *  @param nvprog_remain_u8: The value of nvm program ready
+ *     nvprog_remain_u8     |    result
  *  ------------------------- |------------------
  *     0x00                   | nvm write/update operation is in progress
  *     0x01                   | nvm is ready to accept a new write
@@ -7040,22 +7259,23 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_nvmprog_ready(u8 *v_nvprog_ready_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_nvmprog_remain(u8 *v_nvprog_remain_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_nvmprog_remain(u8 *nvprog_remain_u8)
 {
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
-	if (p_bma2x2 == BMA2x2_NULL) {
-		/* Check the struct p_bma2x2 is empty */
-		return E_BMA2x2_NULL_PTR;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
+	/* Check the struct p_bma2x2 is empty */
+	if (BMA2x2_NULL == p_bma2x2) {
+		com_rslt = E_BMA2x2_NULL_PTR;
 	} else {
 		/* write the nvm program ready*/
 		com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 		(p_bma2x2->dev_addr,
-		BMA2x2_EE_REMAIN__REG, &v_data_u8, C_BMA2x2_ONE_U8X);
-		*v_nvprog_remain_u8 = BMA2x2_GET_BITSLICE
-		(v_data_u8, BMA2x2_EE_REMAIN);
+		BMA2x2_EE_REMAIN_REG, &data_u8,
+		BMA2x2_GEN_READ_WRITE_LENGTH);
+		*nvprog_remain_u8 = BMA2x2_GET_BITSLICE
+		(data_u8, BMA2x2_EE_REMAIN);
 	}
 	return com_rslt;
 }
@@ -7065,11 +7285,11 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_nvmprog_remain(u8 *v_nvprog_remain_u8)
  *
  *
  *
- *  @param  v_spi3_u8 : The value of SPI 3 or 4 wire enable
- *     v_spi3_u8              |    result
+ *  @param  spi3_u8 : The value of SPI 3 or 4 wire enable
+ *     spi3_u8              |    result
  *  ------------------------- |------------------
- *     0x00                   |     spi3
- *     0x01                   |     spi4
+ *     0x00                   |     spi4
+ *     0x01                   |     spi3
  *
  *
  *
@@ -7079,12 +7299,13 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_nvmprog_remain(u8 *v_nvprog_remain_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_spi3(u8 *v_spi3_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_spi3(u8 *spi3_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
@@ -7092,10 +7313,10 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_spi3(u8 *v_spi3_u8)
 			/* read the spi status*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_SPI_MODE_3__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_spi3_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_ENABLE_SPI_MODE_3);
+			BMA2x2_ENABLE_SPI_MODE_3_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*spi3_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_ENABLE_SPI_MODE_3);
 		}
 	return com_rslt;
 }
@@ -7105,11 +7326,11 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_spi3(u8 *v_spi3_u8)
  *
  *
  *
- *  @param  v_spi3_u8 : The value of SPI 3 or 4 wire enable
- *     v_spi3_u8              |    result
+ *  @param  spi3_u8 : The value of SPI 3 or 4 wire enable
+ *     spi3_u8              |    result
  *  ------------------------- |------------------
- *     0x00                   |     spi3
- *     0x01                   |     spi4
+ *     0x00                   |     spi4
+ *     0x01                   |     spi3
  *
  *
  *
@@ -7119,12 +7340,13 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_spi3(u8 *v_spi3_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_spi3(u8 v_spi3_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_spi3(u8 spi3_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
@@ -7132,14 +7354,14 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_spi3(u8 v_spi3_u8)
 			/* write the spi status*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_SPI_MODE_3__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8, BMA2x2_ENABLE_SPI_MODE_3, v_spi3_u8);
+			BMA2x2_ENABLE_SPI_MODE_3_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8, BMA2x2_ENABLE_SPI_MODE_3, spi3_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_SPI_MODE_3__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_ENABLE_SPI_MODE_3_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		}
 	return com_rslt;
 }
@@ -7149,13 +7371,13 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_spi3(u8 v_spi3_u8)
  *	in the register 0x34 bit 1 and 2
  *
  *
- *  @param v_channel_u8: The i2c option selection
- *     v_channel_u8           |    result
+ *  @param channel_u8: The i2c option selection
+ *     channel_u8           |    result
  *  ------------------------- |------------------
  *        0                   |   BMA2x2_ACCEL_I2C_SELECT
  *        1                   |   BMA2x2_ACCEL_I2C_ENABLE
  *
- *  @param v_i2c_wdt_u8: watch dog timer period
+ *  @param i2c_wdt_u8: watch dog timer period
  *	and I2C interface mode is selected
  *     BMA2x2_ACCEL_I2C_SELECT|    result
  *  ------------------------- |------------------
@@ -7174,33 +7396,34 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_spi3(u8 v_spi3_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_i2c_wdt(u8 v_channel_u8,
-u8 *v_i2c_wdt_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_i2c_wdt(u8 channel_u8,
+u8 *i2c_wdt_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 		/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
-		switch (v_channel_u8) {
+		switch (channel_u8) {
 		case BMA2x2_I2C_SELECT:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_I2C_WDT_PERIOD__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_i2c_wdt_u8 = BMA2x2_GET_BITSLICE(v_data_u8,
+			BMA2x2_I2C_WDT_PERIOD_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*i2c_wdt_u8 = BMA2x2_GET_BITSLICE(data_u8,
 			BMA2x2_I2C_WDT_PERIOD);
 		break;
 		case BMA2x2_I2C_ENABLE:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_I2C_WDT__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_i2c_wdt_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_ENABLE_I2C_WDT);
+			BMA2x2_ENABLE_I2C_WDT_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*i2c_wdt_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_ENABLE_I2C_WDT);
 		break;
 		default:
 		com_rslt = E_OUT_OF_RANGE;
@@ -7215,13 +7438,13 @@ u8 *v_i2c_wdt_u8)
  *	in the register 0x34 bit 1 and 2
  *
  *
- *  @param v_channel_u8: The i2c option selection
- *     v_channel_u8           |    result
+ *  @param channel_u8: The i2c option selection
+ *     channel_u8           |    result
  *  ------------------------- |------------------
  *        0                   |   BMA2x2_ACCEL_I2C_SELECT
  *        1                   |   BMA2x2_ACCEL_I2C_ENABLE
  *
- *  @param v_i2c_wdt_u8: watch dog timer period
+ *  @param i2c_wdt_u8: watch dog timer period
  *	and I2C interface mode is selected
  *     BMA2x2_ACCEL_I2C_SELECT|    result
  *  ------------------------- |------------------
@@ -7240,43 +7463,44 @@ u8 *v_i2c_wdt_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_i2c_wdt(u8 v_channel_u8,
-u8 v_i2c_wdt_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_i2c_wdt(u8 channel_u8,
+u8 i2c_wdt_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
-		switch (v_channel_u8) {
+		switch (channel_u8) {
 		case BMA2x2_I2C_SELECT:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_I2C_WDT_PERIOD__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8,
-			BMA2x2_I2C_WDT_PERIOD, v_i2c_wdt_u8);
+			BMA2x2_I2C_WDT_PERIOD_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8,
+			BMA2x2_I2C_WDT_PERIOD, i2c_wdt_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_I2C_WDT_PERIOD__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_I2C_WDT_PERIOD_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
 		case BMA2x2_I2C_ENABLE:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_I2C_WDT__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8,
-			BMA2x2_ENABLE_I2C_WDT, v_i2c_wdt_u8);
+			BMA2x2_ENABLE_I2C_WDT_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8,
+			BMA2x2_ENABLE_I2C_WDT, i2c_wdt_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_I2C_WDT__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_ENABLE_I2C_WDT_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
 		default:
 			com_rslt = E_OUT_OF_RANGE;
@@ -7294,15 +7518,15 @@ u8 v_i2c_wdt_u8)
  *	@note SLOW_COMP_Z -> bit 2
  *
  *
- *	@param v_channel_u8: The value of slow compensation selection
- *     v_channel_u8           |    result
+ *	@param channel_u8: The value of slow compensation selection
+ *     channel_u8           |    result
  *  ------------------------- |------------------
  *        0                   |   BMA2x2_ACCEL_SLOW_COMP_X
  *        1                   |   BMA2x2_ACCEL_SLOW_COMP_Y
  *        2                   |   BMA2x2_ACCEL_SLOW_COMP_Z
  *
- *  @param v_slow_comp_u8: The value of slow compensation enable
- *     v_slow_comp_u8         |    result
+ *  @param slow_comp_u8: The value of slow compensation enable
+ *     slow_comp_u8         |    result
  *  ------------------------- |------------------
  *         0x00               |    Disable
  *        0x01                |    Enable
@@ -7314,44 +7538,45 @@ u8 v_i2c_wdt_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_slow_comp(u8 v_channel_u8,
-u8 *v_slow_comp_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_slow_comp(u8 channel_u8,
+u8 *slow_comp_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
-		switch (v_channel_u8) {
+		switch (channel_u8) {
 		case BMA2x2_SLOW_COMP_X:
 			/*SLOW COMP X*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_SLOW_COMP_X__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_slow_comp_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_ENABLE_SLOW_COMP_X);
+			BMA2x2_ENABLE_SLOW_COMP_X_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*slow_comp_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_ENABLE_SLOW_COMP_X);
 		break;
 		case BMA2x2_SLOW_COMP_Y:
 			/*SLOW COMP Y*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_SLOW_COMP_Y__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_slow_comp_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_ENABLE_SLOW_COMP_Y);
+			BMA2x2_ENABLE_SLOW_COMP_Y_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*slow_comp_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_ENABLE_SLOW_COMP_Y);
 		break;
 		case BMA2x2_SLOW_COMP_Z:
 			/*SLOW COMP Z*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_SLOW_COMP_Z__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_slow_comp_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_ENABLE_SLOW_COMP_Z);
+			BMA2x2_ENABLE_SLOW_COMP_Z_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*slow_comp_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_ENABLE_SLOW_COMP_Z);
 		break;
 		default:
 			com_rslt = E_OUT_OF_RANGE;
@@ -7369,15 +7594,15 @@ u8 *v_slow_comp_u8)
  *	@note SLOW_COMP_Z -> bit 2
  *
  *
- *	@param v_channel_u8: The value of slow compensation selection
- *     v_channel_u8           |    result
+ *	@param channel_u8: The value of slow compensation selection
+ *     channel_u8           |    result
  *  ------------------------- |------------------
  *        0                   |   BMA2x2_ACCEL_SLOW_COMP_X
  *        1                   |   BMA2x2_ACCEL_SLOW_COMP_Y
  *        2                   |   BMA2x2_ACCEL_SLOW_COMP_Z
  *
- *  @param v_slow_comp_u8: The value of slow compensation enable
- *     v_slow_comp_u8         |    result
+ *  @param slow_comp_u8: The value of slow compensation enable
+ *     slow_comp_u8         |    result
  *  ------------------------- |------------------
  *         0x00               |    Disable
  *        0x01                |    Enable
@@ -7389,59 +7614,60 @@ u8 *v_slow_comp_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_slow_comp(u8 v_channel_u8,
-u8 v_slow_comp_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_slow_comp(u8 channel_u8,
+u8 slow_comp_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 		/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
-		switch (v_channel_u8) {
+		switch (channel_u8) {
 		case BMA2x2_SLOW_COMP_X:
 			/*SLOW COMP X*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_SLOW_COMP_X__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8,
-			BMA2x2_ENABLE_SLOW_COMP_X, v_slow_comp_u8);
+			BMA2x2_ENABLE_SLOW_COMP_X_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8,
+			BMA2x2_ENABLE_SLOW_COMP_X, slow_comp_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_SLOW_COMP_X__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_ENABLE_SLOW_COMP_X_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
 		case BMA2x2_SLOW_COMP_Y:
 			/*SLOW COMP Y*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_SLOW_COMP_Y__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8,
-			BMA2x2_ENABLE_SLOW_COMP_Y, v_slow_comp_u8);
+			BMA2x2_ENABLE_SLOW_COMP_Y_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8,
+			BMA2x2_ENABLE_SLOW_COMP_Y, slow_comp_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_SLOW_COMP_Y__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_ENABLE_SLOW_COMP_Y_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
 		case BMA2x2_SLOW_COMP_Z:
 			/*SLOW COMP Z*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_SLOW_COMP_Z__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8,
-			BMA2x2_ENABLE_SLOW_COMP_Z, v_slow_comp_u8);
+			BMA2x2_ENABLE_SLOW_COMP_Z_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8,
+			BMA2x2_ENABLE_SLOW_COMP_Z, slow_comp_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_ENABLE_SLOW_COMP_Z__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_ENABLE_SLOW_COMP_Z_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
 		default:
 			com_rslt = E_OUT_OF_RANGE;
@@ -7457,7 +7683,7 @@ u8 v_slow_comp_u8)
  *
  *
  *
- *  @param  v_cal_rdy_u8: The value of cal_ready
+ *  @param  cal_rdy_u8: The value of cal_ready
  *
  *
  *
@@ -7468,21 +7694,22 @@ u8 v_slow_comp_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_cal_rdy(u8 *v_cal_rdy_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_cal_rdy(u8 *cal_rdy_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
 		com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 		(p_bma2x2->dev_addr,
-		BMA2x2_FAST_CAL_RDY_STAT__REG,
-		&v_data_u8, C_BMA2x2_ONE_U8X);
-		*v_cal_rdy_u8 = BMA2x2_GET_BITSLICE(v_data_u8,
+		BMA2x2_FAST_CAL_RDY_STAT_REG,
+		&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+		*cal_rdy_u8 = BMA2x2_GET_BITSLICE(data_u8,
 		BMA2x2_FAST_CAL_RDY_STAT);
 	}
 	return com_rslt;
@@ -7494,7 +7721,7 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_cal_rdy(u8 *v_cal_rdy_u8)
  *
  *
  *
- *  @param  v_cal_trigger_u8: The value of cal_ready
+ *  @param  cal_trigger_u8: The value of cal_ready
  *
  *
  *
@@ -7505,26 +7732,27 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_cal_rdy(u8 *v_cal_rdy_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_cal_trigger(u8 v_cal_trigger_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_cal_trigger(u8 cal_trigger_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_CAL_TRIGGER__REG, &v_data_u8,
-			C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE(v_data_u8,
-			BMA2x2_CAL_TRIGGER, v_cal_trigger_u8);
+			BMA2x2_CAL_TRIGGER_REG, &data_u8,
+			BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE(data_u8,
+			BMA2x2_CAL_TRIGGER, cal_trigger_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_CAL_TRIGGER__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_CAL_TRIGGER_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		}
 	return com_rslt;
 }
@@ -7535,7 +7763,7 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_cal_trigger(u8 v_cal_trigger_u8)
  *
  *
  *
- *  @param  v_offset_rst_u8: The offset reset value
+ *  @param  offset_rst_u8: The offset reset value
  *
  *
  *
@@ -7545,27 +7773,28 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_cal_trigger(u8 v_cal_trigger_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_offset_rst(u8 v_offset_rst_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_offset_rst(u8 offset_rst_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_RST_OFFSET__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8, BMA2x2_RST_OFFSET,
-			v_offset_rst_u8);
+			BMA2x2_RST_OFFSET_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8, BMA2x2_RST_OFFSET,
+			offset_rst_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_RST_OFFSET__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_RST_OFFSET_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		}
 	return com_rslt;
 }
@@ -7579,15 +7808,15 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_offset_rst(u8 v_offset_rst_u8)
  *	@note OFFSET_TRIGGER_Z -> bit 5 and 6
  *
  *
- *  @param v_channel_u8: The value of offset axis selection
- *     v_channel_u8           |    result
+ *  @param channel_u8: The value of offset axis selection
+ *     channel_u8           |    result
  *  ------------------------- |------------------
  *        0                   |   BMA2x2_ACCEL_CUT_OFF
  *        1                   |   BMA2x2_ACCEL_OFFSET_TRIGGER_X
  *        2                   |   BMA2x2_ACCEL_OFFSET_TRIGGER_Y
  *        2                   |   BMA2x2_ACCEL_OFFSET_TRIGGER_Z
  *
- *  @param  v_offset_u8: The offset target value
+ *  @param  offset_u8: The offset target value
  *     CUT_OFF                |    result
  *  ------------------------- |------------------
  *        0                   |   1Hz
@@ -7607,53 +7836,54 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_offset_rst(u8 v_offset_rst_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_offset_target(u8 v_channel_u8,
-u8 *v_offset_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_offset_target(u8 channel_u8,
+u8 *offset_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
-		switch (v_channel_u8) {
+		switch (channel_u8) {
 		case BMA2x2_CUT_OFF:
 			/*CUT-OFF*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_COMP_CUTOFF__REG, &v_data_u8,
-			C_BMA2x2_ONE_U8X);
-			*v_offset_u8 = BMA2x2_GET_BITSLICE(v_data_u8,
+			BMA2x2_COMP_CUTOFF_REG, &data_u8,
+			BMA2x2_GEN_READ_WRITE_LENGTH);
+			*offset_u8 = BMA2x2_GET_BITSLICE(data_u8,
 			BMA2x2_COMP_CUTOFF);
 		break;
 		case BMA2x2_OFFSET_TRIGGER_X:
 			/*OFFSET TRIGGER X*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_COMP_TARGET_OFFSET_X__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_offset_u8 = BMA2x2_GET_BITSLICE(v_data_u8,
+			BMA2x2_COMP_TARGET_OFFSET_X_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*offset_u8 = BMA2x2_GET_BITSLICE(data_u8,
 			BMA2x2_COMP_TARGET_OFFSET_X);
 		break;
 		case BMA2x2_OFFSET_TRIGGER_Y:
 			/*OFFSET TRIGGER Y*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_COMP_TARGET_OFFSET_Y__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_offset_u8 = BMA2x2_GET_BITSLICE(v_data_u8,
+			BMA2x2_COMP_TARGET_OFFSET_Y_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*offset_u8 = BMA2x2_GET_BITSLICE(data_u8,
 			BMA2x2_COMP_TARGET_OFFSET_Y);
 		break;
 		case BMA2x2_OFFSET_TRIGGER_Z:
 			/*OFFSET TRIGGER Z*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_COMP_TARGET_OFFSET_Z__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_offset_u8 = BMA2x2_GET_BITSLICE
-			(v_data_u8, BMA2x2_COMP_TARGET_OFFSET_Z);
+			BMA2x2_COMP_TARGET_OFFSET_Z_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*offset_u8 = BMA2x2_GET_BITSLICE
+			(data_u8, BMA2x2_COMP_TARGET_OFFSET_Z);
 		break;
 		default:
 			com_rslt = E_OUT_OF_RANGE;
@@ -7672,15 +7902,15 @@ u8 *v_offset_u8)
  *	@note OFFSET_TRIGGER_Z -> bit 5 and 6
  *
  *
- *  @param v_channel_u8: The value of offset axis selection
- *     v_channel_u8           |    result
+ *  @param channel_u8: The value of offset axis selection
+ *     channel_u8           |    result
  *  ------------------------- |------------------
  *        0                   |   BMA2x2_ACCEL_CUT_OFF
  *        1                   |   BMA2x2_ACCEL_OFFSET_TRIGGER_X
  *        2                   |   BMA2x2_ACCEL_OFFSET_TRIGGER_Y
  *        2                   |   BMA2x2_ACCEL_OFFSET_TRIGGER_Z
  *
- *  @param  v_offset_u8: The offset target value
+ *  @param  offset_u8: The offset target value
  *     CUT_OFF                |    result
  *  ------------------------- |------------------
  *        0                   |   1Hz
@@ -7700,69 +7930,70 @@ u8 *v_offset_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_offset_target(u8 v_channel_u8,
-u8 v_offset_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_offset_target(u8 channel_u8,
+u8 offset_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
-		switch (v_channel_u8) {
+		switch (channel_u8) {
 		case BMA2x2_CUT_OFF:
 			/*CUT-OFF*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_COMP_CUTOFF__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8, BMA2x2_COMP_CUTOFF, v_offset_u8);
+			BMA2x2_COMP_CUTOFF_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8, BMA2x2_COMP_CUTOFF, offset_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_COMP_CUTOFF__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_COMP_CUTOFF_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
 		case BMA2x2_OFFSET_TRIGGER_X:
 			/*OFFSET TARGET X*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_COMP_TARGET_OFFSET_X__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8, BMA2x2_COMP_TARGET_OFFSET_X, v_offset_u8);
+			BMA2x2_COMP_TARGET_OFFSET_X_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8, BMA2x2_COMP_TARGET_OFFSET_X, offset_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_COMP_TARGET_OFFSET_X__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_COMP_TARGET_OFFSET_X_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
 		case BMA2x2_OFFSET_TRIGGER_Y:
 			/*OFFSET TARGET Y*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_COMP_TARGET_OFFSET_Y__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8, BMA2x2_COMP_TARGET_OFFSET_Y, v_offset_u8);
+			BMA2x2_COMP_TARGET_OFFSET_Y_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8, BMA2x2_COMP_TARGET_OFFSET_Y, offset_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_COMP_TARGET_OFFSET_Y__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_COMP_TARGET_OFFSET_Y_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
 		case BMA2x2_OFFSET_TRIGGER_Z:
 			/*OFFSET TARGET Z*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_COMP_TARGET_OFFSET_Z__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8, BMA2x2_COMP_TARGET_OFFSET_Z, v_offset_u8);
+			BMA2x2_COMP_TARGET_OFFSET_Z_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8, BMA2x2_COMP_TARGET_OFFSET_Z, offset_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_COMP_TARGET_OFFSET_Z__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_COMP_TARGET_OFFSET_Z_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
 		default:
 			com_rslt = E_OUT_OF_RANGE;
@@ -7779,14 +8010,14 @@ u8 v_offset_u8)
  *	@note offset_z -> register 0x3A bit 0 to 7
  *
  *
- *  @param v_channel_u8: The value of offset selection
- *     v_channel_u8           |    result
+ *  @param channel_u8: The value of offset selection
+ *     channel_u8           |    result
  *  ------------------------- |------------------
  *        0                   |   BMA2x2_ACCEL_X_AXIS
  *        1                   |   BMA2x2_ACCEL_Y_AXIS
  *        2                   |   BMA2x2_ACCEL_Z_AXIS
  *
- *  @param v_offset_u8: The value of offset
+ *  @param offset_u8: The value of offset
  *
  *
  *
@@ -7796,35 +8027,39 @@ u8 v_offset_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_offset(u8 v_channel_u8,
-s8 *v_offset_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_offset(u8 channel_u8,
+s8 *offset_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
-		switch (v_channel_u8) {
+		switch (channel_u8) {
 		case BMA2x2_X_AXIS:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_OFFSET_X_AXIS_REG, &v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_offset_u8 = (s8)v_data_u8;
+			BMA2x2_OFFSET_X_AXIS_ADDR, &data_u8,
+			BMA2x2_GEN_READ_WRITE_LENGTH);
+			*offset_u8 = (s8)data_u8;
 		break;
 		case BMA2x2_Y_AXIS:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_OFFSET_Y_AXIS_REG, &v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_offset_u8 = (s8)v_data_u8;
+			BMA2x2_OFFSET_Y_AXIS_ADDR, &data_u8,
+			BMA2x2_GEN_READ_WRITE_LENGTH);
+			*offset_u8 = (s8)data_u8;
 		break;
 		case BMA2x2_Z_AXIS:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_OFFSET_Z_AXIS_REG, &v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_offset_u8 = (s8)v_data_u8;
+			BMA2x2_OFFSET_Z_AXIS_ADDR, &data_u8,
+			BMA2x2_GEN_READ_WRITE_LENGTH);
+			*offset_u8 = (s8)data_u8;
 		break;
 		default:
 			com_rslt = E_OUT_OF_RANGE;
@@ -7841,14 +8076,14 @@ s8 *v_offset_u8)
  *	@note offset_z -> register 0x3A bit 0 to 7
  *
  *
- *  @param v_channel_u8: The value of offset selection
- *     v_channel_u8           |    result
+ *  @param channel_u8: The value of offset selection
+ *     channel_u8           |    result
  *  ------------------------- |------------------
  *        0                   |   BMA2x2_ACCEL_X_AXIS
  *        1                   |   BMA2x2_ACCEL_Y_AXIS
  *        2                   |   BMA2x2_ACCEL_Z_AXIS
  *
- *  @param v_offset_u8: The value of offset
+ *  @param offset_u8: The value of offset
  *
  *
  *
@@ -7858,35 +8093,39 @@ s8 *v_offset_u8)
  *
  *
  */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_offset(u8 v_channel_u8,
-s8 v_offset_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_offset(u8 channel_u8,
+s8 offset_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
-		switch (v_channel_u8) {
+		switch (channel_u8) {
 		case BMA2x2_X_AXIS:
-			v_data_u8 = v_offset_u8;
+			data_u8 = offset_u8;
 			com_rslt = p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_OFFSET_X_AXIS_REG, &v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_OFFSET_X_AXIS_ADDR, &data_u8,
+			BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
 		case BMA2x2_Y_AXIS:
-			v_data_u8 = v_offset_u8;
+			data_u8 = offset_u8;
 			com_rslt = p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_OFFSET_Y_AXIS_REG, &v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_OFFSET_Y_AXIS_ADDR, &data_u8,
+			BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
 		case BMA2x2_Z_AXIS:
-			v_data_u8 = v_offset_u8;
+			data_u8 = offset_u8;
 			com_rslt = p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_OFFSET_Z_AXIS_REG, &v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_OFFSET_Z_AXIS_ADDR, &data_u8,
+			BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
 		default:
 			com_rslt = E_OUT_OF_RANGE;
@@ -7900,8 +8139,8 @@ s8 v_offset_u8)
  *	the status of fifo (fifo_mode) in the register 0x3E bit 6 and 7
  *
  *
- *  @param v_fifo_mode_u8 : The value of fifo mode
- *     v_fifo_mode_u8         |    result
+ *  @param fifo_mode_u8 : The value of fifo mode
+ *     fifo_mode_u8         |    result
  *  ------------------------- |------------------
  *        0x00                |   BYPASS
  *        0x01                |   FIFO
@@ -7916,21 +8155,22 @@ s8 v_offset_u8)
  *
  *
 */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_fifo_mode(u8 *v_fifo_mode_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_fifo_mode(u8 *fifo_mode_u8)
 {
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC(
 			p_bma2x2->dev_addr,
-			BMA2x2_FIFO_MODE__REG, &v_data_u8,
-			C_BMA2x2_ONE_U8X);
-			*v_fifo_mode_u8 = BMA2x2_GET_BITSLICE(v_data_u8,
+			BMA2x2_FIFO_MODE_REG, &data_u8,
+			BMA2x2_GEN_READ_WRITE_LENGTH);
+			*fifo_mode_u8 = BMA2x2_GET_BITSLICE(data_u8,
 			BMA2x2_FIFO_MODE);
 		}
 	return com_rslt;
@@ -7940,8 +8180,8 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_fifo_mode(u8 *v_fifo_mode_u8)
  *	the status of fifo (fifo_mode) in the register 0x3E bit 6 and 7
  *
  *
- *  @param v_fifo_mode_u8 : The value of fifo mode
- *     v_fifo_mode_u8         |    result
+ *  @param fifo_mode_u8 : The value of fifo mode
+ *     fifo_mode_u8         |    result
  *  ------------------------- |------------------
  *        0x00                |   BYPASS
  *        0x01                |   FIFO
@@ -7956,32 +8196,35 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_fifo_mode(u8 *v_fifo_mode_u8)
  *
  *
 */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_fifo_mode(u8 v_fifo_mode_u8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_fifo_mode(u8 fifo_mode_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 		/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
-	u8 v_config_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 config_data_u8 = BMA2x2_INIT_VALUE;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
-		if (v_fifo_mode_u8 < C_BMA2x2_FOUR_U8X) {
+		if (fifo_mode_u8 < BMA2x2_FIFO_MODE_RANGE) {
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_FIFO_MODE__REG, &v_data_u8, C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE(v_data_u8,
-			BMA2x2_FIFO_MODE, v_fifo_mode_u8);
+			BMA2x2_FIFO_MODE_REG, &data_u8,
+			BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE(data_u8,
+			BMA2x2_FIFO_MODE, fifo_mode_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_FIFO_MODE__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_FIFO_MODE_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 			if (com_rslt == SUCCESS) {
 				com_rslt += bma2x2_read_reg(
 				BMA2x2_FIFO_MODE_REG,
-				&v_config_data_u8, C_BMA2x2_ONE_U8X);
-				p_bma2x2->fifo_config = v_config_data_u8;
+				&config_data_u8,
+				BMA2x2_GEN_READ_WRITE_LENGTH);
+				p_bma2x2->fifo_config = config_data_u8;
 			}
 		} else {
 		com_rslt = E_OUT_OF_RANGE;
@@ -7994,8 +8237,8 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_fifo_mode(u8 v_fifo_mode_u8)
  * the axis enable of fifo data select in the register 0x3E bit 0 and 1
  *
  *
- *  @param v_fifo_data_select_u8 : The value of FIFO axis data select
- *   v_fifo_data_select_u8    |    result
+ *  @param fifo_data_select_u8 : The value of FIFO axis data select
+ *   fifo_data_select_u8    |    result
  *  ------------------------- |------------------
  *        0x00                |   XYZ
  *        0x01                |   Y
@@ -8011,21 +8254,22 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_fifo_mode(u8 v_fifo_mode_u8)
  *
  */
 BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_fifo_data_select(
-u8 *v_fifo_data_select_u8)
+u8 *fifo_data_select_u8)
 {
 		/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC(
 			p_bma2x2->dev_addr,
-			BMA2x2_FIFO_DATA_SELECT__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_fifo_data_select_u8 = BMA2x2_GET_BITSLICE(v_data_u8,
+			BMA2x2_FIFO_DATA_SELECT_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*fifo_data_select_u8 = BMA2x2_GET_BITSLICE(data_u8,
 			BMA2x2_FIFO_DATA_SELECT);
 		}
 	return com_rslt;
@@ -8035,8 +8279,8 @@ u8 *v_fifo_data_select_u8)
  * the axis enable of fifo data select in the register 0x3E bit 0 and 1
  *
  *
- *  @param v_fifo_data_select_u8 : The value of FIFO axis data select
- *   v_fifo_data_select_u8    |    result
+ *  @param fifo_data_select_u8 : The value of FIFO axis data select
+ *   fifo_data_select_u8    |    result
  *  ------------------------- |------------------
  *        0x00                |   XYZ
  *        0x01                |   Y
@@ -8052,34 +8296,36 @@ u8 *v_fifo_data_select_u8)
  *
  */
 BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_fifo_data_select(
-u8 v_fifo_data_select_u8)
+u8 fifo_data_select_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
-	u8 v_config_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 config_data_u8 = BMA2x2_INIT_VALUE;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
-		if (v_fifo_data_select_u8 < C_BMA2x2_FOUR_U8X) {
+		if (fifo_data_select_u8 < BMA2x2_FIFO_DATA_SELECT_RANGE) {
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_FIFO_DATA_SELECT__REG, &v_data_u8,
-			C_BMA2x2_ONE_U8X);
-			v_data_u8 = BMA2x2_SET_BITSLICE
-			(v_data_u8,
-			BMA2x2_FIFO_DATA_SELECT, v_fifo_data_select_u8);
+			BMA2x2_FIFO_DATA_SELECT_REG, &data_u8,
+			BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 = BMA2x2_SET_BITSLICE
+			(data_u8,
+			BMA2x2_FIFO_DATA_SELECT, fifo_data_select_u8);
 			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_FIFO_DATA_SELECT__REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
+			BMA2x2_FIFO_DATA_SELECT_REG,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 			if (com_rslt == SUCCESS) {
 				com_rslt += bma2x2_read_reg(
 				BMA2x2_FIFO_MODE_REG,
-				 &v_config_data_u8, C_BMA2x2_ONE_U8X);
-				p_bma2x2->fifo_config = v_config_data_u8;
+				 &config_data_u8,
+				 BMA2x2_GEN_READ_WRITE_LENGTH);
+				p_bma2x2->fifo_config = config_data_u8;
 			}
 		} else {
 		com_rslt = E_OUT_OF_RANGE;
@@ -8092,7 +8338,7 @@ u8 v_fifo_data_select_u8)
  *	the fifo data in the register 0x3F bit 0 to 7
  *
  *
- *  @param  v_output_reg_u8 : The value of fifo data
+ *  @param  output_reg_u8 : The value of fifo data
  *
  *
  *
@@ -8103,12 +8349,13 @@ u8 v_fifo_data_select_u8)
  *
 */
 BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_fifo_data_output_reg(
-u8 *v_output_reg_u8)
+u8 *output_reg_u8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
@@ -8116,9 +8363,9 @@ u8 *v_output_reg_u8)
 			/*GET FIFO DATA OUTPUT REGISTER*/
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC(
 			p_bma2x2->dev_addr,
-			BMA2x2_FIFO_DATA_OUTPUT_REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_output_reg_u8 = v_data_u8;
+			BMA2x2_FIFO_DATA_OUTPUT_ADDR,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*output_reg_u8 = data_u8;
 		}
 	return com_rslt;
 }
@@ -8128,7 +8375,7 @@ u8 *v_output_reg_u8)
  *
  *
  *
- *  @param  v_temp_s8: The value of temperature
+ *  @param  temp_s8: The value of temperature
  *
  *
  *
@@ -8138,21 +8385,22 @@ u8 *v_output_reg_u8)
  *
  *
 */
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_read_temp(s8 *v_temp_s8)
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_read_temp(s8 *temp_s8)
 {
-	u8 v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8 data_u8 = BMA2x2_INIT_VALUE;
 		/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC(
 			p_bma2x2->dev_addr,
-			BMA2x2_TEMP_REG,
-			&v_data_u8, C_BMA2x2_ONE_U8X);
-			*v_temp_s8 = (s8)v_data_u8;
+			BMA2x2_TEMP_ADDR,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*temp_s8 = (s8)data_u8;
 		}
 	return com_rslt;
 }
@@ -8177,11 +8425,11 @@ struct bma2x2_accel_data_temp *accel)
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
-	u8 v_data_u8[ARRAY_SIZE_SEVEN] = {
-	C_BMA2x2_ZERO_U8X, C_BMA2x2_ZERO_U8X,
-	C_BMA2x2_ZERO_U8X, C_BMA2x2_ZERO_U8X,
-	C_BMA2x2_ZERO_U8X, C_BMA2x2_ZERO_U8X,
-	C_BMA2x2_ZERO_U8X};
+	u8 data_u8[BMA2x2_ACCEL_XYZ_TEMP_DATA_SIZE] = {
+	BMA2x2_INIT_VALUE, BMA2x2_INIT_VALUE,
+	BMA2x2_INIT_VALUE, BMA2x2_INIT_VALUE,
+	BMA2x2_INIT_VALUE, BMA2x2_INIT_VALUE,
+	BMA2x2_INIT_VALUE};
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
@@ -8189,80 +8437,99 @@ struct bma2x2_accel_data_temp *accel)
 		switch (V_BMA2x2RESOLUTION_U8) {
 		case BMA2x2_12_RESOLUTION:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
-			(p_bma2x2->dev_addr, BMA2x2_ACCEL_X12_LSB__REG,
-			v_data_u8, C_BMA2x2_SEVEN_U8X);
+			(p_bma2x2->dev_addr, BMA2x2_ACCEL_X12_LSB_REG,
+			data_u8, BMA2x2_ACCEL_BW_MIN_RANGE);
 
-			/* read x v_data_u8*/
-			accel->x = (s16)((((s32)((s8)v_data_u8[MSB_ONE]))
-			<< C_BMA2x2_EIGHT_U8X) |
-			(v_data_u8[LSB_ZERO] & BMA2x2_12_BIT_SHIFT));
-			accel->x = accel->x >> C_BMA2x2_FOUR_U8X;
+			/* read x data_u8*/
+			accel->x = (s16)((((s32)((s8)
+			data_u8[BMA2x2_SENSOR_DATA_XYZ_X_MSB]))
+			<< BMA2x2_SHIFT_EIGHT_BITS)|
+			(data_u8[BMA2x2_SENSOR_DATA_XYZ_X_LSB]
+			& BMA2x2_12_BIT_SHIFT));
+			accel->x = accel->x >> BMA2x2_SHIFT_FOUR_BITS;
 
-			/* read y v_data_u8*/
-			accel->y = (s16)((((s32)((s8)v_data_u8[MSB_THREE]))
-			<< C_BMA2x2_EIGHT_U8X) |
-			(v_data_u8[LSB_TWO] & BMA2x2_12_BIT_SHIFT));
-			accel->y = accel->y >> C_BMA2x2_FOUR_U8X;
+			/* read y data_u8*/
+			accel->y = (s16)((((s32)((s8)
+			data_u8[BMA2x2_SENSOR_DATA_XYZ_Y_MSB]))
+			<< BMA2x2_SHIFT_EIGHT_BITS)|
+			(data_u8[BMA2x2_SENSOR_DATA_XYZ_Y_LSB]
+			& BMA2x2_12_BIT_SHIFT));
+			accel->y = accel->y >> BMA2x2_SHIFT_FOUR_BITS;
 
-			/* read z v_data_u8*/
-			accel->z = (s16)((((s32)((s8)v_data_u8[MSB_FIVE]))
-			<< C_BMA2x2_EIGHT_U8X) |
-			(v_data_u8[LSB_FOUR] & BMA2x2_12_BIT_SHIFT));
-			accel->z = accel->z >> C_BMA2x2_FOUR_U8X;
-
-			accel->temp = (s8)v_data_u8[INDEX_SIX];
+			/* read z data_u8*/
+			accel->z = (s16)((((s32)((s8)
+			data_u8[BMA2x2_SENSOR_DATA_XYZ_Z_MSB]))
+			<< BMA2x2_SHIFT_EIGHT_BITS)|
+			(data_u8[BMA2x2_SENSOR_DATA_XYZ_Z_LSB]
+			& BMA2x2_12_BIT_SHIFT));
+			accel->z = accel->z >> BMA2x2_SHIFT_FOUR_BITS;
+			/*Accessing the sixth element of array*/
+			accel->temp = (s8)data_u8[BMA2x2_SENSOR_DATA_TEMP];
 		break;
 		case BMA2x2_10_RESOLUTION:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
-			(p_bma2x2->dev_addr, BMA2x2_ACCEL_X10_LSB__REG,
-			v_data_u8, C_BMA2x2_SEVEN_U8X);
+			(p_bma2x2->dev_addr, BMA2x2_ACCEL_X10_LSB_REG,
+			data_u8, BMA2x2_ACCEL_BW_MIN_RANGE);
 
-			/* read x v_data_u8*/
-			accel->x = (s16)((((s32)((s8)v_data_u8[MSB_ONE]))
-			<< C_BMA2x2_EIGHT_U8X) |
-			(v_data_u8[LSB_ZERO] & BMA2x2_10_BIT_SHIFT));
-			accel->x = accel->x >> C_BMA2x2_SIX_U8X;
+			/* read x data_u8*/
+			accel->x = (s16)((((s32)((s8)
+			data_u8[BMA2x2_SENSOR_DATA_XYZ_X_MSB]))<<
+			BMA2x2_SHIFT_EIGHT_BITS)|
+			(data_u8[BMA2x2_SENSOR_DATA_XYZ_X_LSB]
+			& BMA2x2_10_BIT_SHIFT));
+			accel->x = accel->x >> BMA2x2_SHIFT_SIX_BITS;
 
-			/* read y v_data_u8*/
-			accel->y = (s16)((((s32)((s8)v_data_u8[MSB_THREE]))
-			<< C_BMA2x2_EIGHT_U8X) |
-			(v_data_u8[LSB_TWO] & BMA2x2_10_BIT_SHIFT));
-			accel->y = accel->y >> C_BMA2x2_SIX_U8X;
+			/* read y data_u8*/
+			accel->y = (s16)((((s32)((s8)
+			data_u8[BMA2x2_SENSOR_DATA_XYZ_Y_MSB]))<<
+			BMA2x2_SHIFT_EIGHT_BITS)|
+			(data_u8[BMA2x2_SENSOR_DATA_XYZ_Y_LSB]
+			& BMA2x2_10_BIT_SHIFT));
+			accel->y = accel->y >> BMA2x2_SHIFT_SIX_BITS;
 
-			/* read z v_data_u8*/
-			accel->z = (s16)((((s32)((s8)v_data_u8[MSB_FIVE]))
-			<< C_BMA2x2_EIGHT_U8X) |
-			(v_data_u8[LSB_FOUR] & BMA2x2_10_BIT_SHIFT));
-			accel->z = accel->z >> C_BMA2x2_SIX_U8X;
+			/* read z data_u8*/
+			accel->z = (s16)((((s32)((s8)
+			data_u8[BMA2x2_SENSOR_DATA_XYZ_Z_MSB]))<<
+			BMA2x2_SHIFT_EIGHT_BITS)|
+			(data_u8[BMA2x2_SENSOR_DATA_XYZ_Z_LSB]
+			& BMA2x2_10_BIT_SHIFT));
+			accel->z = accel->z >> BMA2x2_SHIFT_SIX_BITS;
 
-			/* read v_temp_s8 v_data_u8*/
-			accel->temp = (s8)v_data_u8[INDEX_SIX];
+			/* read temp_s8 data_u8*/
+			/*Accessing the sixth element of array*/
+			accel->temp = (s8)data_u8[BMA2x2_SENSOR_DATA_TEMP];
 		break;
 		case BMA2x2_14_RESOLUTION:
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
-			(p_bma2x2->dev_addr, BMA2x2_ACCEL_X14_LSB__REG,
-			v_data_u8, C_BMA2x2_SEVEN_U8X);
+			(p_bma2x2->dev_addr, BMA2x2_ACCEL_X14_LSB_REG,
+			data_u8, BMA2x2_ACCEL_BW_MIN_RANGE);
 
-			/* read x v_data_u8*/
-			accel->x = (s16)((((s32)((s8)v_data_u8[MSB_ONE]))
-			<< C_BMA2x2_EIGHT_U8X) |
-			(v_data_u8[LSB_ZERO] & BMA2x2_14_BIT_SHIFT));
-			accel->x = accel->x >> C_BMA2x2_TWO_U8X;
+			/* read x data_u8*/
+			accel->x = (s16)((((s32)((s8)
+			data_u8[BMA2x2_SENSOR_DATA_XYZ_X_MSB]))<<
+			BMA2x2_SHIFT_EIGHT_BITS)|
+			(data_u8[BMA2x2_SENSOR_DATA_XYZ_X_LSB]
+			& BMA2x2_14_BIT_SHIFT));
+			accel->x = accel->x >> BMA2x2_SHIFT_TWO_BITS;
 
-			/* read y v_data_u8*/
-			accel->y = (s16)((((s32)((s8)v_data_u8[MSB_THREE]))
-			<< C_BMA2x2_EIGHT_U8X) |
-			(v_data_u8[LSB_TWO] & BMA2x2_14_BIT_SHIFT));
-			accel->y = accel->y >> C_BMA2x2_TWO_U8X;
+			/* read y data_u8*/
+			accel->y = (s16)((((s32)((s8)
+			data_u8[BMA2x2_SENSOR_DATA_XYZ_Y_MSB]))<<
+			BMA2x2_SHIFT_EIGHT_BITS)|
+			(data_u8[BMA2x2_SENSOR_DATA_XYZ_Y_LSB]
+			& BMA2x2_14_BIT_SHIFT));
+			accel->y = accel->y >> BMA2x2_SHIFT_TWO_BITS;
 
-			/* read z v_data_u8*/
-			accel->z = (s16)((((s32)((s8)v_data_u8[MSB_FIVE]))
-			<< C_BMA2x2_EIGHT_U8X) |
-			(v_data_u8[LSB_FOUR] & BMA2x2_14_BIT_SHIFT));
-			accel->z = accel->z >> C_BMA2x2_TWO_U8X;
-
-			/* read temp v_data_u8*/
-			accel->temp = (s8)v_data_u8[INDEX_SIX];
+			/* read z data_u8*/
+			accel->z = (s16)((((s32)((s8)
+			data_u8[BMA2x2_SENSOR_DATA_XYZ_Z_MSB]))<<
+			BMA2x2_SHIFT_EIGHT_BITS)|
+			(data_u8[BMA2x2_SENSOR_DATA_XYZ_Z_LSB]
+			& BMA2x2_14_BIT_SHIFT));
+			accel->z = accel->z >> BMA2x2_SHIFT_TWO_BITS;
+			/* read temp data_u8*/
+			/*Accessing the sixth element of array*/
+			accel->temp = (s8)data_u8[BMA2x2_SENSOR_DATA_TEMP];
 		break;
 		default:
 		break;
@@ -8291,34 +8558,37 @@ struct bma2x2_accel_eight_resolution_temp *accel)
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
-	u8	v_data_u8 = C_BMA2x2_ZERO_U8X;
+	u8	data_u8 = BMA2x2_INIT_VALUE;
+
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
 		return E_BMA2x2_NULL_PTR;
 		} else {
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_X_AXIS_MSB_REG, &v_data_u8, C_BMA2x2_ONE_U8X);
-			accel->x = BMA2x2_GET_BITSLICE(v_data_u8,
+			BMA2x2_X_AXIS_MSB_ADDR, &data_u8,
+			BMA2x2_GEN_READ_WRITE_LENGTH);
+			accel->x = BMA2x2_GET_BITSLICE(data_u8,
 			BMA2x2_ACCEL_X_MSB);
 
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_Y_AXIS_MSB_REG, &v_data_u8, C_BMA2x2_ONE_U8X);
-			accel->y = BMA2x2_GET_BITSLICE(v_data_u8,
+			BMA2x2_Y_AXIS_MSB_ADDR, &data_u8,
+			BMA2x2_GEN_READ_WRITE_LENGTH);
+			accel->y = BMA2x2_GET_BITSLICE(data_u8,
 			BMA2x2_ACCEL_Y_MSB);
 
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
-			BMA2x2_Z_AXIS_MSB_REG, &v_data_u8, C_BMA2x2_ONE_U8X);
-			accel->z = BMA2x2_GET_BITSLICE(v_data_u8,
+			BMA2x2_Z_AXIS_MSB_ADDR, &data_u8,
+			BMA2x2_GEN_READ_WRITE_LENGTH);
+			accel->z = BMA2x2_GET_BITSLICE(data_u8,
 			BMA2x2_ACCEL_Z_MSB);
 
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC(
-			p_bma2x2->dev_addr,
-			BMA2x2_TEMP_REG, &v_data_u8,
-			C_BMA2x2_ONE_U8X);
-			accel->temp = (s8)v_data_u8;
+			p_bma2x2->dev_addr, BMA2x2_TEMP_ADDR, &data_u8,
+			BMA2x2_GEN_READ_WRITE_LENGTH);
+			accel->temp = (s8)data_u8;
 		}
 	return com_rslt;
 }
