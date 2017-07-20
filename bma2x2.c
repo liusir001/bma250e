@@ -2078,13 +2078,13 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_update_image(void)
  *              2          | BMA2x2_HIGH_G_Y_INTR
  *              3          | BMA2x2_HIGH_G_Z_INTR
  *              4          | BMA2x2_DATA_ENABLE
- *              5          | SLOPE_X_INTR
- *              6          | SLOPE_Y_INTR
- *              7          | SLOPE_Z_INTR
- *              8          | SINGLE_TAP_INTR
- *              9          | SINGLE_TAP_INTR
- *              10         | ORIENT_INT
- *              11         | FLAT_INT
+ *              5          | BMA2x2_SLOPE_X_INTR
+ *              6          | BMA2x2_SLOPE_Y_INTR
+ *              7          | BMA2x2_SLOPE_Z_INTR
+ *              8          | BMA2x2_SINGLE_TAP_INTR
+ *              9          | BMA2x2_DOUBLE_TAP_INTR
+ *              10         | BMA2x2_ORIENT_INT
+ *              11         | BMA2x2_FLAT_INT
  *
  *  @param value_u8 : The value of interrupts enable
  *        value_u8       |   result
@@ -2238,13 +2238,13 @@ u8 *value_u8)
  *              2          | BMA2x2_HIGH_G_Y_INTR
  *              3          | BMA2x2_HIGH_G_Z_INTR
  *              4          | BMA2x2_DATA_ENABLE
- *              5          | SLOPE_X_INTR
- *              6          | SLOPE_Y_INTR
- *              7          | SLOPE_Z_INTR
- *              8          | SINGLE_TAP_INTR
- *              9          | SINGLE_TAP_INTR
- *              10         | ORIENT_INT
- *              11         | FLAT_INT
+ *              5          | BMA2x2_SLOPE_X_INTR
+ *              6          | BMA2x2_SLOPE_Y_INTR
+ *              7          | BMA2x2_SLOPE_Z_INTR
+ *              8          | BMA2x2_SINGLE_TAP_INTR
+ *              9          | BMA2x2_DOUBLE_TAP_INTR
+ *              10         | BMA2x2_ORIENT_INT
+ *              11         | BMA2x2_FLAT_INT
  *
  *  @param value_u8 : The value of interrupts enable
  *        value_u8       |   result
