@@ -303,6 +303,7 @@ s8 SPI_routine(void)
  *	SDI, SDO and CLk and also select the device address
  * The following definition of I2C address is used for the following sensors
  * BMA255
+ * BMA253
  * BMA355
  * BMA280
  * BMA282

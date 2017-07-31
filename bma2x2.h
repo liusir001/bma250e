@@ -400,6 +400,7 @@ burst_read(device_addr, register_addr, register_data, rd_len)
 /**************************************************************/
 /**< The following definition of I2C address is used for the following sensors
 * BMA255
+* BMA253
 * BMA355
 * BMA280
 * BMA282

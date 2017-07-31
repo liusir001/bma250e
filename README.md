@@ -16,6 +16,7 @@ INTRODUCTION
 	- BMA2x2 sensor driver supports the following Bosch MEMS sensors
 		* BMA280
 		* BMA255
+		* BMA253
 		* BMA250E
 		* BMA22E
 		* BMA220
