@@ -5,54 +5,82 @@
 *
 * File : bma2x2.h
 *
-* Date : 2016/03/11
+* Date : 2016/11/14
 *
-* Revision : 2.0.4 $
+* Revision : 2.0.7 $
 *
 * Usage: Sensor Driver file for BMA2x2 sensor
 *
 ****************************************************************************
-* \section License
+* \section Disclaimer
 *
-* Redistribution and use in source and binary forms, with or without
-* modification, are permitted provided that the following conditions are met:
+* Common:
+* Bosch Sensortec products are developed for the consumer goods industry.
+* They may only be used within the parameters of the respective valid
+* product data sheet.  Bosch Sensortec products are provided with the
+* express understanding that there is no warranty of fitness for a
+* particular purpose.They are not fit for use in life-sustaining,
+* safety or security sensitive systems or any system or device
+* that may lead to bodily harm or property damage if the system
+* or device malfunctions. In addition,Bosch Sensortec products are
+* not fit for use in products which interact with motor vehicle systems.
+* The resale and or use of products are at the purchasers own risk and
+* his own responsibility. The examination of fitness for the intended use
+* is the sole responsibility of the Purchaser.
 *
-*   Redistributions of source code must retain the above copyright
-*   notice, this list of conditions and the following disclaimer.
+* The purchaser shall indemnify Bosch Sensortec from all third party
+* claims, including any claims for incidental, or consequential damages,
+* arising from any product use not covered by the parameters of
+* the respective valid product data sheet or not approved by
+* Bosch Sensortec and reimburse Bosch Sensortec for all costs in
+* connection with such claims.
 *
-*   Redistributions in binary form must reproduce the above copyright
-*   notice, this list of conditions and the following disclaimer in the
-*   documentation and/or other materials provided with the distribution.
+* The purchaser must monitor the market for the purchased products,
+* particularly with regard to product safety and inform Bosch Sensortec
+* without delay of all security relevant incidents.
 *
-*   Neither the name of the copyright holder nor the names of the
-*   contributors may be used to endorse or promote products derived from
-*   this software without specific prior written permission.
+* Engineering Samples are marked with an asterisk (*) or (e).
+* Samples may vary from the valid technical specifications of the product
+* series. They are therefore not intended or fit for resale to third
+* parties or for use in end products. Their sole purpose is internal
+* client testing. The testing of an engineering sample may in no way
+* replace the testing of a product series. Bosch Sensortec assumes
+* no liability for the use of engineering samples.
+* By accepting the engineering samples, the Purchaser agrees to indemnify
+* Bosch Sensortec from all claims arising from the use of engineering
+* samples.
 *
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
-* CONTRIBUTORS "AS IS" AND ANY EXPRESS OR
-* IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-* WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-* DISCLAIMED. IN NO EVENT SHALL COPYRIGHT HOLDER
-* OR CONTRIBUTORS BE LIABLE FOR ANY
-* DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
-* OR CONSEQUENTIAL DAMAGES(INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-* LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-* WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-* ANY WAY OUT OF THE USE OF THIS
-* SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
+* Special:
+* This software module (hereinafter called "Software") and any information
+* on application-sheets (hereinafter called "Information") is provided
+* free of charge for the sole purpose to support your application work.
+* The Software and Information is subject to the following
+* terms and conditions:
 *
-* The information provided is believed to be accurate and reliable.
-* The copyright holder assumes no responsibility
-* for the consequences of use
-* of such information nor for any infringement of patents or
+* The Software is specifically designed for the exclusive use for
+* Bosch Sensortec products by personnel who have special experience
+* and training. Do not use this Software if you do not have the
+* proper experience or training.
+*
+* This Software package is provided `` as is `` and without any expressed
+* or implied warranties,including without limitation, the implied warranties
+* of merchantability and fitness for a particular purpose.
+*
+* Bosch Sensortec and their representatives and agents deny any liability
+* for the functional impairment
+* of this Software in terms of fitness, performance and safety.
+* Bosch Sensortec and their representatives and agents shall not be liable
+* for any direct or indirect damages or injury, except as
+* otherwise stipulated in mandatory applicable law.
+*
+* The Information provided is believed to be accurate and reliable.
+* Bosch Sensortec assumes no responsibility for the consequences of use
+* of such Information nor for any infringement of patents or
 * other rights of third parties which may result from its use.
 * No license is granted by implication or otherwise under any patent or
-* patent rights of the copyright holder.
+* patent rights of Bosch. Specifications mentioned in the Information are
+* subject to change without notice.
 **************************************************************************/
-
 /*! \file bma2x2.h
     \brief BMA2x2 Sensor Driver Support Header File */
 #ifndef __BMA2x2_H__
@@ -426,6 +454,7 @@ burst_read(device_addr, register_addr, register_data, rd_len)
 /**************************************************************/
 #define         BMA2x2_INIT_VALUE                       ((u8)0)
 #define         BMA2x2_GEN_READ_WRITE_LENGTH            ((u8)1)
+#define		BMA2x2_INTERFACE_IDLE_TIME_DELAY	((u8)1)
 #define         BMA2x2_LSB_MSB_READ_LENGTH		((u8)2)
 	/**	BIT SHIFT DEFINITIONS    */
 #define         BMA2x2_SHIFT_TWO_BITS                   ((u8)2)
@@ -438,6 +467,14 @@ burst_read(device_addr, register_addr, register_data, rd_len)
 #define		BMA2x2_FIFO_DATA_SELECT_RANGE		((u8)4)
 #define		BMA2x2_FIFO_MODE_RANGE			((u8)4)
 #define         BMA2x2_FIFO_WML_RANGE                   ((u8)32)
+
+#define         BMA2x2_FIFO_XYZ_DATA_ENABLED          (0x00)
+#define         BMA2x2_FIFO_X_DATA_ENABLED          (0x01)
+#define         BMA2x2_FIFO_Y_DATA_ENABLED          (0x02)
+#define         BMA2x2_FIFO_Z_DATA_ENABLED          (0x03)
+#define         BMA2x2_FIFO_DATA_ENABLED_MASK         (0x03)
+#define         BMA2x2_FIFO_XYZ_AXES_FRAME_SIZE       ((u8)6)
+#define         BMA2x2_FIFO_SINGLE_AXIS_FRAME_SIZE    ((u8)2)
 	/**	MODE RANGES    */
 #define         BMA2x2_ACCEL_BW_MIN_RANGE               ((u8)7)
 #define         BMA2x2_ACCEL_BW_1000HZ_RANGE            ((u8)15)
@@ -455,8 +492,8 @@ burst_read(device_addr, register_addr, register_data, rd_len)
 #define E_OUT_OF_RANGE          ((s8)-2)
 #define E_BMA2x2_NULL_PTR       ((s8)-127)
 #define BMA2x2_NULL             ((void *)0)
-#define ERROR					((s8)-1)
-#define	SUCCESS					((u8)0)
+#define ERROR			((s8)-1)
+#define	SUCCESS			((u8)0)
 /**************************************************************/
 /**\name	RETURN TYPE DEFINITION    */
 /**************************************************************/
@@ -497,10 +534,10 @@ burst_read(device_addr, register_addr, register_data, rd_len)
 #define BMA2x2_INTR_SLOW_NO_MOTION_ADDR         (0x18)
 #define BMA2x2_INTR1_PAD_SELECT_ADDR            (0x19)
 #define BMA2x2_INTR_DATA_SELECT_ADDR            (0x1A)
-#define BMA2x2_INTR2_PAD_SELECT_ADDR             (0x1B)
-#define BMA2x2_INTR_SOURCE_ADDR                  (0x1E)
-#define BMA2x2_INTR_SET_ADDR                     (0x20)
-#define BMA2x2_INTR_CTRL_ADDR                    (0x21)
+#define BMA2x2_INTR2_PAD_SELECT_ADDR            (0x1B)
+#define BMA2x2_INTR_SOURCE_ADDR                 (0x1E)
+#define BMA2x2_INTR_SET_ADDR                    (0x20)
+#define BMA2x2_INTR_CTRL_ADDR                   (0x21)
 /** FEATURE ADDRESS DEFINITIONS */
 #define BMA2x2_LOW_DURN_ADDR                     (0x22)
 #define BMA2x2_LOW_THRES_ADDR                    (0x23)
@@ -586,6 +623,36 @@ y,/**< accel y data with eight bit resolution*/
 z;/**< accel z data with eight bit resolution*/
 s8 temp;/**< accel temperature data*/
 };
+
+/*!
+ *  @brief FIFO data read is parsed and returned to user using this union.
+ *
+ *  @note Read the respective data fields in the union for corresponding
+ *  accel data axes enabled in FIFO storage( Axes stored in FIFO can be set
+ *  by the data_select_bits in the register FIFO_CONFIG_1 )
+ *
+ *  data enabled for FIFO storage | Data field to be read from the below union
+ *  ------------------------------|-------------------------------------------
+ *          XYZ axes enabled      |         struct bma2x2_accel_data
+ *          X axis data enabled   |         x data
+ *          Y axis data enabled   |         y data
+ *          Z axis data enabled   |         z data
+ */
+union fifo_frame {
+	/*! FIFO data stored here when XYZ data enabled in
+	fifo_data_select bits of register 0x3E*/
+	struct bma2x2_accel_data accel_data;
+	/*! FIFO data stored here when accel X data enabled in
+	fifo_data_select bits of register 0x3E*/
+	s16 x;
+	/*! FIFO data stored here when accel Y data enabled in
+	fifo_data_select bits of register 0x3E*/
+	s16 y;
+	/*! FIFO data stored here when accel Z data enabled in
+	fifo_data_select bits of register 0x3E*/
+	s16 z;
+};
+
 /*!
  *	@brief bma2x2 initialization struct
  *	struct bma2x2_t is used for assigning the following parameters.
@@ -594,23 +661,48 @@ s8 temp;/**< accel temperature data*/
  *	Bus read function pointer: BMA2x2_RD_FUNC_PTR
  *	Burst read function pointer: BMA2x2_BRD_FUNC_PTR
  *	Delay function pointer: delay_msec
- *
  *	I2C address: dev_addr
  *	Chip id of the sensor: chip_id
-*/
-struct bma2x2_t {
-u8 power_mode_u8;/**< save current bma2x2 operation mode */
-u8 chip_id;/**< chip_id of bma2x2 */
-u8 ctrl_mode_reg;/**< the value of power mode register 0x11*/
-u8 low_mode_reg;/**< the value of power mode register 0x12*/
-u8 dev_addr;/**< initializes bma2x2's I2C device address*/
-u8 fifo_config;/**< store the fifo configuration register*/
-BMA2x2_WR_FUNC_PTR;/**< function pointer to the SPI/I2C write function */
-BMA2x2_RD_FUNC_PTR;/**< function pointer to the SPI/I2C read function */
-BMA2x2_BRD_FUNC_PTR;/**< function pointer to the SPI/I2C burst read function */
-void (*delay_msec)(BMA2x2_MDELAY_DATA_TYPE);
-/**< function pointer to a pause in mili seconds function
  */
+struct bma2x2_t {
+	/*! save current bma2x2 operation mode */
+	u8 power_mode_u8;
+	/*! chip_id of bma2x2 */
+	u8 chip_id;
+	/*! the value of power mode register 0x11*/
+	u8 ctrl_mode_reg;
+	/*! the value of power mode register 0x12*/
+	u8 low_mode_reg;
+	/*! initializes bma2x2's I2C device address*/
+	u8 dev_addr;
+	/*! store the fifo configuration register*/
+	u8 fifo_config;
+	/*! function pointer to the SPI/I2C write function */
+	BMA2x2_WR_FUNC_PTR;
+	/*! function pointer to the SPI/I2C read function */
+	BMA2x2_RD_FUNC_PTR;
+	/*! function pointer to the SPI/I2C burst read function */
+	BMA2x2_BRD_FUNC_PTR;
+	/*! delay(in ms) function pointer */
+	void (*delay_msec)(BMA2x2_MDELAY_DATA_TYPE);
+};
+
+/*!
+ *  @brief FIFO configurations are stored in this structure
+ *
+ *  @note User should map the following before reading the FIFO data
+ *    - buffer for storing the FIFO data should be mapped to the member
+ *     "fifo_data" of this structure
+ *    - Number of bytes to be read from the FIFO should be mapped to the member
+ *     "fifo_length" of this structure
+ */
+struct fifo_configuration {
+	/*! Data buffer of user defined length is to be mapped here */
+	u8 *fifo_data;
+	/*! Index of accel data stored in FIFO buffer */
+	u8 accel_byte_start_index;
+	/*! No of bytes to be read in FIFO as specified by the user */
+	u8 fifo_length;
 };
 
 /*********************************************************************/
@@ -1964,7 +2056,7 @@ BMA2x2_INTR_SOURCE_ADDR
 /******************************************/
 /**\name  LOW-G MODE SELECTION    */
 /******************************************/
-#define LOW_G_SINGLE_AXIS_MODE	(0x00)
+#define LOW_G_SINGLE_AXIS_MODE		(0x00)
 #define LOW_G_SUMMING_MODE		(0x01)
 /******************************************/
 /**\name TAP DURATION DEFINITION    */
@@ -1990,8 +2082,8 @@ BMA2x2_INTR_SOURCE_ADDR
 /****************************************************/
 /**\name	ARRAY SIZE DEFINITIONS      */
 /***************************************************/
-#define BMA2x2_ACCEL_DATA_SIZE				(2)
-#define BMA2x2_ACCEL_XYZ_DATA_SIZE			(6)
+#define BMA2x2_ACCEL_DATA_SIZE			(2)
+#define BMA2x2_ACCEL_XYZ_DATA_SIZE		(6)
 #define BMA2x2_ACCEL_XYZ_TEMP_DATA_SIZE		(7)
 /****************************************************/
 /**\name	ARRAY PARAMETERS      */
@@ -2000,25 +2092,25 @@ BMA2x2_INTR_SOURCE_ADDR
 #define BMA2x2_SENSOR_DATA_ACCEL_LSB	(0)
 #define BMA2x2_SENSOR_DATA_ACCEL_MSB	(1)
 
-#define BMA2x2_SENSOR_DATA_XYZ_X_LSB				(0)
-#define BMA2x2_SENSOR_DATA_XYZ_X_MSB				(1)
-#define BMA2x2_SENSOR_DATA_XYZ_Y_LSB				(2)
-#define BMA2x2_SENSOR_DATA_XYZ_Y_MSB				(3)
-#define BMA2x2_SENSOR_DATA_XYZ_Z_LSB				(4)
-#define BMA2x2_SENSOR_DATA_XYZ_Z_MSB				(5)
-#define BMA2x2_SENSOR_DATA_TEMP						(6)
+#define BMA2x2_SENSOR_DATA_XYZ_X_LSB	(0)
+#define BMA2x2_SENSOR_DATA_XYZ_X_MSB	(1)
+#define BMA2x2_SENSOR_DATA_XYZ_Y_LSB	(2)
+#define BMA2x2_SENSOR_DATA_XYZ_Y_MSB	(3)
+#define BMA2x2_SENSOR_DATA_XYZ_Z_LSB	(4)
+#define BMA2x2_SENSOR_DATA_XYZ_Z_MSB	(5)
+#define BMA2x2_SENSOR_DATA_TEMP		(6)
 
 #define BMA2x2_RESOLUTION_12_MASK		(0xF0)
 #define BMA2x2_RESOLUTION_10_MASK		(0xC0)
 #define BMA2x2_RESOLUTION_14_MASK		(0xFC)
 
-#define	BMA2x2_POWER_MODE_HEX_E_ZERO_MASK			(0xE0)
-#define	BMA2x2_POWER_MODE_HEX_4_ZERO_MASK			(0x40)
-#define	BMA2x2_POWER_MODE_HEX_ZERO_ZERO_MASK		(0x00)
-#define	BMA2x2_POWER_MODE_HEX_ZERO_ONE_MASK			(0x01)
-#define	BMA2x2_POWER_MODE_HEX_ZERO_TWO_MASK			(0x02)
-#define	BMA2x2_POWER_MODE_HEX_ZERO_FOUR_MASK		(0x04)
-#define	BMA2x2_POWER_MODE_HEX_ZERO_SIX_MASK			(0x06)
+#define	BMA2x2_POWER_MODE_HEX_E_ZERO_MASK	(0xE0)
+#define	BMA2x2_POWER_MODE_HEX_4_ZERO_MASK	(0x40)
+#define	BMA2x2_POWER_MODE_HEX_ZERO_ZERO_MASK	(0x00)
+#define	BMA2x2_POWER_MODE_HEX_ZERO_ONE_MASK	(0x01)
+#define	BMA2x2_POWER_MODE_HEX_ZERO_TWO_MASK	(0x02)
+#define	BMA2x2_POWER_MODE_HEX_ZERO_FOUR_MASK	(0x04)
+#define	BMA2x2_POWER_MODE_HEX_ZERO_SIX_MASK	(0x06)
 
 /** Macro to convert floating point
 low-g-thresholds in G to 8-bit register values.<br>
@@ -2845,13 +2937,13 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_update_image(void);
  *              2          | BMA2x2_HIGH_G_Y_INTR
  *              3          | BMA2x2_HIGH_G_Z_INTR
  *              4          | BMA2x2_DATA_ENABLE
- *              5          | BMA2x2_SLOPE_X_INTR
- *              6          | BMA2x2_SLOPE_Y_INTR
- *              7          | BMA2x2_SLOPE_Z_INTR
- *              8          | BMA2x2_SINGLE_TAP_INTR
- *              9          | BMA2x2_DOUBLE_TAP_INTR
- *              10         | BMA2x2_ORIENT_INT
- *              11         | BMA2x2_FLAT_INT
+ *              5          | SLOPE_X_INTR
+ *              6          | SLOPE_Y_INTR
+ *              7          | SLOPE_Z_INTR
+ *              8          | SINGLE_TAP_INTR
+ *              9          | SINGLE_TAP_INTR
+ *              10         | ORIENT_INT
+ *              11         | FLAT_INT
  *
  *  @param value_u8 : The value of interrupts enable
  *        value_u8       |   result
@@ -2891,13 +2983,13 @@ u8 *value_u8);
  *              2          | BMA2x2_HIGH_G_Y_INTR
  *              3          | BMA2x2_HIGH_G_Z_INTR
  *              4          | BMA2x2_DATA_ENABLE
- *              5          | BMA2x2_SLOPE_X_INTR
- *              6          | BMA2x2_SLOPE_Y_INTR
- *              7          | BMA2x2_SLOPE_Z_INTR
- *              8          | BMA2x2_SINGLE_TAP_INTR
- *              9          | BMA2x2_DOUBLE_TAP_INTR
- *              10         | BMA2x2_ORIENT_INT
- *              11         | BMA2x2_FLAT_INT
+ *              5          | SLOPE_X_INTR
+ *              6          | SLOPE_Y_INTR
+ *              7          | SLOPE_Z_INTR
+ *              8          | SINGLE_TAP_INTR
+ *              9          | SINGLE_TAP_INTR
+ *              10         | ORIENT_INT
+ *              11         | FLAT_INT
  *
  *  @param value_u8 : The value of interrupts enable
  *        value_u8       |   result
@@ -5622,23 +5714,61 @@ u8 *fifo_data_select_u8);
  */
 BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_fifo_data_select(
 u8 fifo_data_select_u8);
+
 /*!
- *	@brief This API is used to get
- *	the fifo data in the register 0x3F bit 0 to 7
+ *  @brief This API reads the FIFO data from the register 0x3F
+ *  and store the data in the user defined buffer mapped to the member
+ *  of structure "fifo_configuration"
  *
+ *  @note Before calling this API user must map the following FIFO settings
+ *  required to read the FIFO data to the structure "fifo_configuration"
+ *    - Data buffer to store the FIFO data is mapped to
+ *      the structure member "fifo_data"
+ *    - Number of bytes to be read from FIFO is mapped to
+ *      the structure member "fifo_length"
  *
- *  @param  output_reg_u8 : The value of fifo data
+ *  @note The number of bytes to be read from the FIFO is specified in the
+ *  member "fifo_length" of the structure "fifo_configuration"
  *
+ *  @param[in,out] fifo_conf : Structure containing the FIFO configurations
+ *  is passed as input and FIFO data of specified length is obtained as output
  *
+ *  @return results of bus communication function
+ *  @retval 0 -> Success
+ *  @retval -1 -> Error
  *
- *	@return results of bus communication function
- *	@retval 0 -> Success
- *	@retval -1 -> Error
+ */
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_read_fifo_data(
+			struct fifo_configuration *fifo_conf);
+
+/*!
+ *  @brief This API extracts the accel data from the FIFO frames
  *
+ *  @note The bma2x2_extract_accel() API should be called only after reading
+ *  the FIFO data by calling the bma2x2_read_fifo_data() API
  *
-*/
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_fifo_data_output_reg(
-u8 *output_reg_u8);
+ *  @param[in,out] accel_frame      : Instance of the union where accel data
+ *                                    in FIFO is parsed and stored
+ *
+ *  @param[in,out] accel_frame_count: Number of Accel frames requested by user
+ *                                    is got as input and number of
+ *                                    accel frames parsed and stored is
+ *                                    returned as output to user
+ *
+ *  @param[in, out] fifo_conf       : FIFO configuration structure.
+ *                                    It provides the following as input
+ *                                        - user defined buffer
+ *                                        - length of FIFO data read
+ *                                    It returns the accel_byte_start_index
+ *                                    (index of accel bytes parsed from FIFO)
+ *
+ *  @return results of API execution status
+ *  @retval 0 -> Success
+ *  @retval -127 -> Error
+ *
+ */
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_extract_accel(union fifo_frame *accel_frame,
+		u8 *accel_frame_count, struct fifo_configuration *fifo_conf);
 /******************************************/
 /**\name FUNCTION FOR  TEMPERATURE DATA READ */
 /******************************************/
@@ -5696,5 +5826,23 @@ struct bma2x2_accel_data_temp *accel);
 */
 BMA2x2_RETURN_FUNCTION_TYPE bma2x2_read_accel_eight_resolution_xyzt(
 struct bma2x2_accel_eight_resolution_temp *accel);
+/*Depreciated Functions*/
+/*!
+ *	@brief This API is used to get
+ *	the fifo data in the register 0x3F bit 0 to 7
+ *
+ *
+ *  @param  output_reg_u8 : The value of fifo data
+ *
+ *
+ *
+ *	@return results of bus communication function
+ *	@retval 0 -> Success
+ *	@retval -1 -> Error
+ *
+ *
+*/
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_fifo_data_output_reg(
+u8 *output_reg_u8);
 #endif
 

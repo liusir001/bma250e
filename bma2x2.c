@@ -3,51 +3,80 @@
 * Copyright (C) 2015 - 2016 Bosch Sensortec GmbH
 *
 * bma2x2.c
-* Date: 2016/03/11
-* Revision: 2.0.4 $
+* Date: 2016/11/14
+* Revision: 2.0.7 $
 *
 * Usage: Sensor Driver for BMA2x2 sensor
 *
 ****************************************************************************
-* License:
+* Disclaimer
 *
-* Redistribution and use in source and binary forms, with or without
-* modification, are permitted provided that the following conditions are met:
+* Common:
+* Bosch Sensortec products are developed for the consumer goods industry.
+* They may only be used within the parameters of the respective valid
+* product data sheet.  Bosch Sensortec products are provided with the
+* express understanding that there is no warranty of fitness for a
+* particular purpose.They are not fit for use in life-sustaining,
+* safety or security sensitive systems or any system or device
+* that may lead to bodily harm or property damage if the system
+* or device malfunctions. In addition,Bosch Sensortec products are
+* not fit for use in products which interact with motor vehicle systems.
+* The resale and or use of products are at the purchasers own risk and
+* his own responsibility. The examination of fitness for the intended use
+* is the sole responsibility of the Purchaser.
 *
-*   Redistributions of source code must retain the above copyright
-*   notice, this list of conditions and the following disclaimer.
+* The purchaser shall indemnify Bosch Sensortec from all third party
+* claims, including any claims for incidental, or consequential damages,
+* arising from any product use not covered by the parameters of
+* the respective valid product data sheet or not approved by
+* Bosch Sensortec and reimburse Bosch Sensortec for all costs in
+* connection with such claims.
 *
-*   Redistributions in binary form must reproduce the above copyright
-*   notice, this list of conditions and the following disclaimer in the
-*   documentation and/or other materials provided with the distribution.
+* The purchaser must monitor the market for the purchased products,
+* particularly with regard to product safety and inform Bosch Sensortec
+* without delay of all security relevant incidents.
 *
-*   Neither the name of the copyright holder nor the names of the
-*   contributors may be used to endorse or promote products derived from
-*   this software without specific prior written permission.
+* Engineering Samples are marked with an asterisk (*) or (e).
+* Samples may vary from the valid technical specifications of the product
+* series. They are therefore not intended or fit for resale to third
+* parties or for use in end products. Their sole purpose is internal
+* client testing. The testing of an engineering sample may in no way
+* replace the testing of a product series. Bosch Sensortec assumes
+* no liability for the use of engineering samples.
+* By accepting the engineering samples, the Purchaser agrees to indemnify
+* Bosch Sensortec from all claims arising from the use of engineering
+* samples.
 *
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
-* CONTRIBUTORS "AS IS" AND ANY EXPRESS OR
-* IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-* WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-* DISCLAIMED. IN NO EVENT SHALL COPYRIGHT HOLDER
-* OR CONTRIBUTORS BE LIABLE FOR ANY
-* DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
-* OR CONSEQUENTIAL DAMAGES(INCLUDING, BUT NOT LIMITED TO,
-* PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-* LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-* WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-* ANY WAY OUT OF THE USE OF THIS
-* SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
+* Special:
+* This software module (hereinafter called "Software") and any information
+* on application-sheets (hereinafter called "Information") is provided
+* free of charge for the sole purpose to support your application work.
+* The Software and Information is subject to the following
+* terms and conditions:
 *
-* The information provided is believed to be accurate and reliable.
-* The copyright holder assumes no responsibility
-* for the consequences of use
-* of such information nor for any infringement of patents or
+* The Software is specifically designed for the exclusive use for
+* Bosch Sensortec products by personnel who have special experience
+* and training. Do not use this Software if you do not have the
+* proper experience or training.
+*
+* This Software package is provided `` as is `` and without any expressed
+* or implied warranties,including without limitation, the implied warranties
+* of merchantability and fitness for a particular purpose.
+*
+* Bosch Sensortec and their representatives and agents deny any liability
+* for the functional impairment
+* of this Software in terms of fitness, performance and safety.
+* Bosch Sensortec and their representatives and agents shall not be liable
+* for any direct or indirect damages or injury, except as
+* otherwise stipulated in mandatory applicable law.
+*
+* The Information provided is believed to be accurate and reliable.
+* Bosch Sensortec assumes no responsibility for the consequences of use
+* of such Information nor for any infringement of patents or
 * other rights of third parties which may result from its use.
 * No license is granted by implication or otherwise under any patent or
-* patent rights of the copyright holder.
+* patent rights of Bosch. Specifications mentioned in the Information are
+* subject to change without notice.
 **************************************************************************/
 /*! file <BMA2x2 >
     brief <Sensor driver for BMA2x2> */
@@ -57,6 +86,60 @@ static struct bma2x2_t *p_bma2x2;
 /*! Based on Bit resolution value_u8 should be modified */
 u8 V_BMA2x2RESOLUTION_U8 = BMA2x2_14_RESOLUTION;
 
+/****************************************************************************/
+/*!	Static Function Declarations
+*****************************************************************************/
+/*!
+ *  @brief This API computes the number of bytes of accel FIFO data
+ *  which is to be parsed.
+ *
+ *  @param[out] data_index       : The start index for parsing data
+ *  @param[out] data_read_length : No of bytes to be parsed from FIFO buffer
+ *  @param[in] accel_frame_count : Number of accelerometer frames to be read
+ *  @param[in] fifo_data_select  : Denoting enabled axes data stored in FIFO
+ *  @param[in] fifo_conf         : FIFO configuration structure
+ *
+ */
+static void get_accel_len_to_parse(u8 *data_index, u8 *data_read_length,
+		u8 accel_frame_count, u8 fifo_data_select,
+		struct fifo_configuration *fifo_conf);
+
+/*!
+ *  @brief This API is used to parse the accelerometer frame from the
+ *  user defined FIFO data buffer mapped to the structure fifo_conf and store
+ *  it in the union fifo_frame
+ *
+ *  @note It update the data_index value which is used to store the index of
+ *  the current data byte which is parsed.
+ *
+ *  @note The parsed accel frames stored in the union fifo_conf contains data
+ *  in accordance with the enabled data axes to be stored in FIFO
+ *  (XYZ axes or individual axis)
+ *
+ *  @param[in,out] accel_frame  : Instance of union fifo_frame
+ *  @param[in,out] data_index   : Index value of noumber of bytes parsed
+ *  @param[in,out] accel_index  : Index value of accelerometer frame parsed
+ *  @param[in] fifo_data_select : Denoting enabled axes data stored in FIFO
+ *  @param[in] fifo_conf        : FIFO configuration structure
+ *
+ */
+static void unpack_accel_frame(union fifo_frame *accel_frame, u8 *data_index,
+		u8 *accel_index, u8 fifo_data_select,
+		struct fifo_configuration *fifo_conf);
+
+/*!
+ *  @brief This API is used to parse the accelerometer data and
+ *  store it in the union fifo_frame
+ *  It also updates the data_index value which stores the index of
+ *  the current data byte which is parsed
+ *
+ *  @param[in,out] accel_frame  : Instance of union fifo_frame
+ *  @param[in,out] data_index   : Index value of noumber of bytes parsed
+ *  @param[in] fifo_conf        : FIFO configuration structure
+ *
+ */
+static void unpack_accel_xyz(union fifo_frame *accel_frame, u8 *data_index,
+		struct fifo_configuration *fifo_conf);
 /*!
  * @brief
  *	This API reads the data from
@@ -123,16 +206,21 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_init(struct bma2x2_t *bma2x2)
 	u8 config_data_u8 = BMA2x2_INIT_VALUE;
 	/* assign bma2x2 ptr */
 	p_bma2x2 = bma2x2;
-	/* read Chip Id */
-	com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
-	(p_bma2x2->dev_addr,
-	BMA2x2_CHIP_ID_REG, &data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
-	p_bma2x2->chip_id = data_u8;    /* get bit slice */
-	/* read the fifo config register and update
-	the value to the fifo_config*/
-	com_rslt += bma2x2_read_reg(BMA2x2_FIFO_MODE_REG,
-	&config_data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
-	p_bma2x2->fifo_config = config_data_u8;
+	if (p_bma2x2 == BMA2x2_NULL) {
+		/* Check the struct p_bma2x2 is empty */
+		com_rslt = E_BMA2x2_NULL_PTR;
+	} else {
+		/* read Chip Id */
+		com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
+		(p_bma2x2->dev_addr,
+		BMA2x2_CHIP_ID_REG, &data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+		p_bma2x2->chip_id = data_u8;    /* get bit slice */
+		/* read the fifo config register and update
+		the value to the fifo_config*/
+		com_rslt += bma2x2_read_reg(BMA2x2_FIFO_MODE_REG,
+		&config_data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+		p_bma2x2->fifo_config = config_data_u8;
+	}
 	return com_rslt;
 }
 /*!
@@ -167,6 +255,12 @@ u8 *data_u8, u8 len_u8)
 		/* Write the data to the register*/
 		com_rslt = p_bma2x2->BMA2x2_BUS_WRITE_FUNC
 		(p_bma2x2->dev_addr, adr_u8, data_u8, len_u8);
+
+		if (p_bma2x2->power_mode_u8 != BMA2x2_MODE_NORMAL) {
+			/*A minimum interface idle time delay
+			of atleast 450us is required as per the data sheet.*/
+			p_bma2x2->delay_msec(BMA2x2_INTERFACE_IDLE_TIME_DELAY);
+		}
 	}
 	return com_rslt;
 }
@@ -1073,10 +1167,8 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_range(u8 range_u8)
 			break;
 			}
 			/* Write the range register 0x0F*/
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
-			BMA2x2_RANGE_SELECT_REG, &data_u8,
-			BMA2x2_GEN_READ_WRITE_LENGTH);
+			com_rslt += bma2x2_write_reg(BMA2x2_RANGE_SELECT_REG,
+				&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		} else {
 		com_rslt = E_OUT_OF_RANGE;
 		}
@@ -1084,12 +1176,12 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_range(u8 range_u8)
 	return com_rslt;
 }
 /*!
- *	@brief This API is used to get the bandwidth of the sensor in the register
- *	0x10 bit from 0 to 4
+ *  @brief This API is used to get the bandwidth of the sensor in the register
+ *  0x10 bit from 0 to 4
  *
  *
  *  @param bw_u8 : The value of bandwidth
- *		  bw_u8          |   result
+ *          bw_u8          |   result
  *       ----------------- | --------------
  *              0x08       | BMA2x2_BW_7_81HZ
  *              0x09       | BMA2x2_BW_15_63HZ
@@ -1102,9 +1194,9 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_range(u8 range_u8)
  *
  *
  *
- *	@return results of bus communication function
- *	@retval 0 -> Success
- *	@retval -1 -> Error
+ *  @return results of bus communication function
+ *  @retval 0 -> Success
+ *  @retval -1 -> Error
  *
  *
 */
@@ -1216,9 +1308,8 @@ if (p_bma2x2 == BMA2x2_NULL) {
 			BMA2x2_GEN_READ_WRITE_LENGTH);
 			data_u8 = BMA2x2_SET_BITSLICE(data_u8,
 			BMA2x2_BW, data_bw_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
-			BMA2x2_BW_REG, &data_u8,
+			com_rslt += bma2x2_write_reg
+			(BMA2x2_BW_REG, &data_u8,
 			BMA2x2_GEN_READ_WRITE_LENGTH);
 			} else {
 			com_rslt = E_OUT_OF_RANGE;
@@ -1277,8 +1368,7 @@ if (p_bma2x2 == BMA2x2_NULL) {
 			BMA2x2_GEN_READ_WRITE_LENGTH);
 			data_u8 = BMA2x2_SET_BITSLICE
 			(data_u8, BMA2x2_BW, data_bw_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_BW_REG, &data_u8,
 			BMA2x2_GEN_READ_WRITE_LENGTH);
 			} else {
@@ -1400,7 +1490,7 @@ return com_rslt;
  *
  *
  *  @param power_mode_u8 : The value of power mode
- *	power_mode_u8           |value  |   0x11  |   0x12
+ *	power_mode_u8         |value  |   0x11  |   0x12
  *  ------------------------- |-------| --------|--------
  *  BMA2x2_MODE_NORMAL        |  0    |  0x00   |  0x00
  *  BMA2x2_MODE_LOWPOWER1     |  1    |  0x02   |  0x00
@@ -1432,69 +1522,57 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_power_mode(u8 power_mode_u8)
 		/* Check the struct p_bma2x2 is empty */
 		com_rslt = E_BMA2x2_NULL_PTR;
 	} else {
-		com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
-		(p_bma2x2->dev_addr,
-		BMA2x2_MODE_CTRL_REG,
-		&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
-		com_rslt += p_bma2x2->BMA2x2_BUS_READ_FUNC
-		(p_bma2x2->dev_addr,
-		BMA2x2_LOW_POWER_MODE_REG,
-		&data2_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+		com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC(p_bma2x2->dev_addr,
+			BMA2x2_MODE_CTRL_REG, &data_u8, 1);
+		com_rslt += p_bma2x2->BMA2x2_BUS_READ_FUNC(p_bma2x2->dev_addr,
+			BMA2x2_LOW_POWER_MODE_REG, &data2_u8, 1);
+
+		/* write the previous FIFO mode and data select*/
+		pre_fifo_config_data = p_bma2x2->fifo_config;
+		pre_fifo_config_data |= 0x0C;
 
 		com_rslt += bma2x2_set_mode_value(power_mode_u8);
 		mode_ctr_eleven_reg = p_bma2x2->ctrl_mode_reg;
 		mode_ctr_twel_reg =  p_bma2x2->low_mode_reg;
-		/* write the power mode to
-		register 0x12*/
-		data2_u8  = BMA2x2_SET_BITSLICE
-		(data2_u8, BMA2x2_LOW_POWER_MODE,
-		mode_ctr_twel_reg);
-		com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-		(p_bma2x2->dev_addr, BMA2x2_LOW_POWER_MODE_REG,
-		&data2_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
-		/*A minimum delay of
-		atleast 450us is required for
-		the low power modes,
-		as per the data sheet.*/
-		p_bma2x2->delay_msec(BMA2x2_GEN_READ_WRITE_LENGTH);
-		/* Enter the power mode to suspend*/
-		data_u8  = BMA2x2_SET_BITSLICE
-		(data_u8, BMA2x2_MODE_CTRL,
-		BMA2x2_SHIFT_FOUR_BITS);
-		/* write the power mode to suspend*/
-		com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-		(p_bma2x2->dev_addr, BMA2x2_MODE_CTRL_REG,
-		&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
-		/*A minimum delay of
-		atleast 450us is required for
-		the low power modes,
-		as per the data sheet.*/
-		p_bma2x2->delay_msec(BMA2x2_GEN_READ_WRITE_LENGTH);
-		/* write the previous FIFO mode and data select*/
-		pre_fifo_config_data = p_bma2x2->fifo_config;
+
+		/* write the power mode to the register 0x12*/
+		data2_u8  = BMA2x2_SET_BITSLICE(data2_u8, BMA2x2_LOW_POWER_MODE,
+					mode_ctr_twel_reg);
+		com_rslt += bma2x2_write_reg(BMA2x2_LOW_POWER_MODE_REG,
+					&data2_u8, 1);
+
+		/*A minimum delay of atleast 450us is required for
+		the low power modes, as per the data sheet.*/
+		p_bma2x2->delay_msec(BMA2x2_INTERFACE_IDLE_TIME_DELAY);
+
+		if (((p_bma2x2->power_mode_u8 == BMA2x2_MODE_LOWPOWER1) ||
+			(p_bma2x2->power_mode_u8 == BMA2x2_MODE_LOWPOWER2)) &&
+				(power_mode_u8 == BMA2x2_MODE_NORMAL)) {
+				/* Enter the power mode to suspend*/
+				data_u8  = BMA2x2_SET_BITSLICE(data_u8,
+				BMA2x2_MODE_CTRL, BMA2x2_SHIFT_FOUR_BITS);
+				/* write the power mode to suspend*/
+				com_rslt += bma2x2_write_reg(
+				BMA2x2_MODE_CTRL_REG, &data_u8,
+				BMA2x2_GEN_READ_WRITE_LENGTH);
+				/*re-write FIFO_CONFIG_0 register*/
+				com_rslt += bma2x2_write_reg(
+				BMA2x2_FIFO_MODE_REG, &pre_fifo_config_data, 1);
+			}
+
+		/* write the power mode to 0x11 register*/
+		data_u8  = BMA2x2_SET_BITSLICE(data_u8, BMA2x2_MODE_CTRL,
+			mode_ctr_eleven_reg);
+		com_rslt += bma2x2_write_reg(BMA2x2_MODE_CTRL_REG, &data_u8, 1);
+		/*A minimum delay of atleast 450us is required for
+		the low power modes, as per the data sheet.*/
+		p_bma2x2->delay_msec(BMA2x2_INTERFACE_IDLE_TIME_DELAY);
+
 		com_rslt += bma2x2_write_reg(BMA2x2_FIFO_MODE_REG,
-		&pre_fifo_config_data, BMA2x2_GEN_READ_WRITE_LENGTH);
-		/*A minimum delay of
-		atleast 450us is required for
-		the low power modes,
-		as per the data sheet.*/
-		p_bma2x2->delay_msec(BMA2x2_GEN_READ_WRITE_LENGTH);
-		com_rslt += p_bma2x2->BMA2x2_BUS_READ_FUNC
-		(p_bma2x2->dev_addr,
-		BMA2x2_MODE_CTRL_REG,
-		&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
-		/* write the power mode to 11th register*/
-		data_u8  = BMA2x2_SET_BITSLICE
-		(data_u8, BMA2x2_MODE_CTRL,
-		mode_ctr_eleven_reg);
-		com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-		(p_bma2x2->dev_addr, BMA2x2_MODE_CTRL_REG,
-		&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
-		/*A minimum delay of
-		atleast 450us is required for
-		the low power modes,
-		as per the data sheet.*/
-		p_bma2x2->delay_msec(BMA2x2_GEN_READ_WRITE_LENGTH);
+		&pre_fifo_config_data, 1);
+
+		/*Assigning the power mode to the global variable*/
+		p_bma2x2->power_mode_u8 = power_mode_u8;
 	}
 	return com_rslt;
 }
@@ -1733,8 +1811,7 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_sleep_durn(u8 sleep_durn_u8)
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 			data_u8 = BMA2x2_SET_BITSLICE
 			(data_u8, BMA2x2_SLEEP_DURN, data_sleep_durn_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr, BMA2x2_SLEEP_DURN_REG,
+			com_rslt += bma2x2_write_reg(BMA2x2_SLEEP_DURN_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		} else {
 		com_rslt = E_OUT_OF_RANGE;
@@ -1821,8 +1898,7 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_sleep_timer_mode(u8 sleep_timer_u8)
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 			data_u8 = BMA2x2_SET_BITSLICE
 			(data_u8, BMA2x2_SLEEP_TIMER, sleep_timer_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr, BMA2x2_SLEEP_TIMER_REG,
+			com_rslt += bma2x2_write_reg(BMA2x2_SLEEP_TIMER_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		} else {
 		com_rslt = E_OUT_OF_RANGE;
@@ -1899,8 +1975,7 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_high_bw(u8 high_bw_u8)
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 			data_u8 = BMA2x2_SET_BITSLICE(data_u8,
 			BMA2x2_ENABLE_DATA_HIGH_BW, high_bw_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_ENABLE_DATA_HIGH_BW_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		}
@@ -1978,8 +2053,7 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_shadow_dis(u8 shadow_dis_u8)
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 			data_u8 = BMA2x2_SET_BITSLICE
 			(data_u8, BMA2x2_DIS_SHADOW_PROC, shadow_dis_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr, BMA2x2_DIS_SHADOW_PROC_REG,
+			com_rslt += bma2x2_write_reg(BMA2x2_DIS_SHADOW_PROC_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		}
 	return com_rslt;
@@ -2012,8 +2086,7 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_soft_rst(void)
 		}  else {
 			/*! To reset the sensor
 			0xB6 value_u8 will be written */
-			com_rslt = p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr, BMA2x2_RST_ADDR,
+			com_rslt = bma2x2_write_reg(BMA2x2_RST_ADDR,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		}
 	return com_rslt;
@@ -2051,8 +2124,7 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_update_image(void)
 			data_u8 = BMA2x2_SET_BITSLICE
 			(data_u8, BMA2x2_UPDATE_IMAGE,
 			BMA2x2_GEN_READ_WRITE_LENGTH);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr, BMA2x2_UPDATE_IMAGE_REG,
+			com_rslt += bma2x2_write_reg(BMA2x2_UPDATE_IMAGE_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		}
 	return com_rslt;
@@ -2078,13 +2150,13 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_update_image(void)
  *              2          | BMA2x2_HIGH_G_Y_INTR
  *              3          | BMA2x2_HIGH_G_Z_INTR
  *              4          | BMA2x2_DATA_ENABLE
- *              5          | BMA2x2_SLOPE_X_INTR
- *              6          | BMA2x2_SLOPE_Y_INTR
- *              7          | BMA2x2_SLOPE_Z_INTR
- *              8          | BMA2x2_SINGLE_TAP_INTR
- *              9          | BMA2x2_DOUBLE_TAP_INTR
- *              10         | BMA2x2_ORIENT_INT
- *              11         | BMA2x2_FLAT_INT
+ *              5          | SLOPE_X_INTR
+ *              6          | SLOPE_Y_INTR
+ *              7          | SLOPE_Z_INTR
+ *              8          | SINGLE_TAP_INTR
+ *              9          | SINGLE_TAP_INTR
+ *              10         | ORIENT_INT
+ *              11         | FLAT_INT
  *
  *  @param value_u8 : The value of interrupts enable
  *        value_u8       |   result
@@ -2238,13 +2310,13 @@ u8 *value_u8)
  *              2          | BMA2x2_HIGH_G_Y_INTR
  *              3          | BMA2x2_HIGH_G_Z_INTR
  *              4          | BMA2x2_DATA_ENABLE
- *              5          | BMA2x2_SLOPE_X_INTR
- *              6          | BMA2x2_SLOPE_Y_INTR
- *              7          | BMA2x2_SLOPE_Z_INTR
- *              8          | BMA2x2_SINGLE_TAP_INTR
- *              9          | BMA2x2_DOUBLE_TAP_INTR
- *              10         | BMA2x2_ORIENT_INT
- *              11         | BMA2x2_FLAT_INT
+ *              5          | SLOPE_X_INTR
+ *              6          | SLOPE_Y_INTR
+ *              7          | SLOPE_Z_INTR
+ *              8          | SINGLE_TAP_INTR
+ *              9          | SINGLE_TAP_INTR
+ *              10         | ORIENT_INT
+ *              11         | FLAT_INT
  *
  *  @param value_u8 : The value of interrupts enable
  *        value_u8       |   result
@@ -2347,11 +2419,11 @@ u8 value_u8)
 		break;
 		}
 		/* write the interrupt*/
-		com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-		(p_bma2x2->dev_addr, BMA2x2_INTR_ENABLE1_ADDR,
+		com_rslt += bma2x2_write_reg
+		(BMA2x2_INTR_ENABLE1_ADDR,
 		&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
-		com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-		(p_bma2x2->dev_addr, BMA2x2_INTR_ENABLE2_ADDR,
+		com_rslt += bma2x2_write_reg
+		(BMA2x2_INTR_ENABLE2_ADDR,
 		&data2_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 	}
 	return com_rslt;
@@ -2437,8 +2509,7 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_intr_fifo_full(u8 fifo_full_u8)
 			data_u8 = BMA2x2_SET_BITSLICE
 			(data_u8, BMA2x2_INTR_FIFO_FULL_ENABLE_INTR,
 			fifo_full_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_INTR_FIFO_FULL_ENABLE_INTR_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		} else {
@@ -2532,8 +2603,7 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_intr_fifo_wm(u8 fifo_wm_u8)
 			data_u8 = BMA2x2_SET_BITSLICE
 			(data_u8, BMA2x2_INTR_FIFO_WM_ENABLE_INTR,
 			fifo_wm_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_INTR_FIFO_WM_ENABLE_INTR_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		} else {
@@ -2674,8 +2744,7 @@ u8 slow_no_motion_u8)
 			(data_u8,
 			BMA2x2_INTR_SLOW_NO_MOTION_ENABLE_X_INTR,
 			slow_no_motion_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_INTR_SLOW_NO_MOTION_ENABLE_X_INTR_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
@@ -2688,8 +2757,7 @@ u8 slow_no_motion_u8)
 			(data_u8,
 			BMA2x2_INTR_SLOW_NO_MOTION_ENABLE_Y_INTR,
 			slow_no_motion_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_INTR_SLOW_NO_MOTION_ENABLE_Y_INTR_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
@@ -2702,8 +2770,7 @@ u8 slow_no_motion_u8)
 			(data_u8,
 			BMA2x2_INTR_SLOW_NO_MOTION_ENABLE_Z_INTR,
 			slow_no_motion_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_INTR_SLOW_NO_MOTION_ENABLE_Z_INTR_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
@@ -2716,8 +2783,7 @@ u8 slow_no_motion_u8)
 			(data_u8,
 			BMA2x2_INTR_SLOW_NO_MOTION_ENABLE_SELECT_INTR,
 			slow_no_motion_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_INTR_SLOW_NO_MOTION_ENABLE_SELECT_INTR_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
@@ -2843,8 +2909,7 @@ u8 intr_low_u8)
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 			data_u8 = BMA2x2_SET_BITSLICE(data_u8,
 			BMA2x2_ENABLE_INTR1_PAD_LOW_G, intr_low_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_ENABLE_INTR1_PAD_LOW_G_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
@@ -2856,8 +2921,7 @@ u8 intr_low_u8)
 			data_u8 = BMA2x2_SET_BITSLICE
 			(data_u8, BMA2x2_ENABLE_INTR2_PAD_LOW_G,
 			intr_low_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_ENABLE_INTR2_PAD_LOW_G_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
@@ -2979,8 +3043,7 @@ u8 intr_high_g_u8)
 			data_u8 = BMA2x2_SET_BITSLICE
 			(data_u8, BMA2x2_ENABLE_INTR1_PAD_HIGH_G,
 			intr_high_g_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_ENABLE_INTR1_PAD_HIGH_G_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
@@ -2992,8 +3055,7 @@ u8 intr_high_g_u8)
 			data_u8 = BMA2x2_SET_BITSLICE
 			(data_u8, BMA2x2_ENABLE_INTR2_PAD_HIGH_G,
 			intr_high_g_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_ENABLE_INTR2_PAD_HIGH_G_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
@@ -3119,8 +3181,7 @@ u8 intr_slope_u8)
 			data_u8 = BMA2x2_SET_BITSLICE
 			(data_u8, BMA2x2_ENABLE_INTR1_PAD_SLOPE,
 			intr_slope_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_ENABLE_INTR1_PAD_SLOPE_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
@@ -3132,8 +3193,7 @@ u8 intr_slope_u8)
 			data_u8 = BMA2x2_SET_BITSLICE
 			(data_u8, BMA2x2_ENABLE_INTR2_PAD_SLOPE,
 			intr_slope_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_ENABLE_INTR2_PAD_SLOPE_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
@@ -3262,8 +3322,7 @@ u8 intr_slow_no_motion_u8)
 			(data_u8,
 			BMA2x2_ENABLE_INTR1_PAD_SLOW_NO_MOTION,
 			intr_slow_no_motion_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_ENABLE_INTR1_PAD_SLOW_NO_MOTION_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
@@ -3276,8 +3335,7 @@ u8 intr_slow_no_motion_u8)
 			(data_u8,
 			BMA2x2_ENABLE_INTR2_PAD_SLOW_NO_MOTION,
 			intr_slow_no_motion_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_ENABLE_INTR2_PAD_SLOW_NO_MOTION_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
@@ -3404,8 +3462,7 @@ u8 intr_double_tap_u8)
 			(data_u8,
 			BMA2x2_ENABLE_INTR1_PAD_DOUBLE_TAP,
 			intr_double_tap_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_ENABLE_INTR1_PAD_DOUBLE_TAP_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
@@ -3418,8 +3475,7 @@ u8 intr_double_tap_u8)
 			(data_u8,
 			BMA2x2_ENABLE_INTR2_PAD_DOUBLE_TAP,
 			intr_double_tap_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_ENABLE_INTR2_PAD_DOUBLE_TAP_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
@@ -3543,8 +3599,7 @@ u8 intr_single_tap_u8)
 			data_u8 = BMA2x2_SET_BITSLICE(data_u8,
 			BMA2x2_ENABLE_INTR1_PAD_SINGLE_TAP,
 			intr_single_tap_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_ENABLE_INTR1_PAD_SINGLE_TAP_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
@@ -3557,8 +3612,7 @@ u8 intr_single_tap_u8)
 			(data_u8,
 			BMA2x2_ENABLE_INTR2_PAD_SINGLE_TAP,
 			intr_single_tap_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_ENABLE_INTR2_PAD_SINGLE_TAP_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
@@ -3680,8 +3734,7 @@ u8 intr_orient_u8)
 			data_u8 = BMA2x2_SET_BITSLICE
 			(data_u8,
 			BMA2x2_ENABLE_INTR1_PAD_ORIENT, intr_orient_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_ENABLE_INTR1_PAD_ORIENT_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
@@ -3693,8 +3746,7 @@ u8 intr_orient_u8)
 			data_u8 = BMA2x2_SET_BITSLICE
 			(data_u8,
 			BMA2x2_ENABLE_INTR2_PAD_ORIENT, intr_orient_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_ENABLE_INTR2_PAD_ORIENT_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
@@ -3820,8 +3872,7 @@ u8 intr_flat_u8)
 			data_u8 = BMA2x2_SET_BITSLICE
 			(data_u8,
 			BMA2x2_ENABLE_INTR1_PAD_FLAT, intr_flat_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_ENABLE_INTR1_PAD_FLAT_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
@@ -3833,8 +3884,7 @@ u8 intr_flat_u8)
 			data_u8 = BMA2x2_SET_BITSLICE
 			(data_u8,
 			BMA2x2_ENABLE_INTR2_PAD_FLAT, intr_flat_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_ENABLE_INTR2_PAD_FLAT_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
@@ -3958,8 +4008,7 @@ u8 intr_newdata_u8)
 			data_u8 = BMA2x2_SET_BITSLICE
 			(data_u8,
 			BMA2x2_ENABLE_INTR1_PAD_NEWDATA, intr_newdata_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_ENABLE_INTR1_PAD_NEWDATA_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
@@ -3971,8 +4020,7 @@ u8 intr_newdata_u8)
 			data_u8 = BMA2x2_SET_BITSLICE
 			(data_u8,
 			BMA2x2_ENABLE_INTR2_PAD_NEWDATA, intr_newdata_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_ENABLE_INTR2_PAD_NEWDATA_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
@@ -4061,8 +4109,7 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_intr1_fifo_wm(u8 intr1_fifo_wm_u8)
 			data_u8 = BMA2x2_SET_BITSLICE
 			(data_u8,
 			BMA2x2_ENABLE_INTR1_PAD_FIFO_WM, intr1_fifo_wm_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_ENABLE_INTR1_PAD_FIFO_WM_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		} else {
@@ -4149,8 +4196,7 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_intr2_fifo_wm(u8 intr2_fifo_wm_u8)
 			data_u8 = BMA2x2_SET_BITSLICE
 			(data_u8,
 			BMA2x2_ENABLE_INTR2_PAD_FIFO_WM, intr2_fifo_wm_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_ENABLE_INTR2_PAD_FIFO_WM_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		} else {
@@ -4241,8 +4287,7 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_intr1_fifo_full(u8 intr1_fifo_full_u8)
 			data_u8 = BMA2x2_SET_BITSLICE
 			(data_u8, BMA2x2_ENABLE_INTR1_PAD_FIFO_FULL,
 			intr1_fifo_full_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_ENABLE_INTR1_PAD_FIFO_FULL_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 			} else {
@@ -4336,8 +4381,7 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_intr2_fifo_full(u8 intr2_fifo_full_u8)
 			(data_u8,
 			BMA2x2_ENABLE_INTR2_PAD_FIFO_FULL,
 			intr2_fifo_full_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_ENABLE_INTR2_PAD_FIFO_FULL_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 			} else {
@@ -4492,8 +4536,7 @@ u8 intr_source_u8)
 			data_u8 = BMA2x2_SET_BITSLICE
 			(data_u8,
 			BMA2x2_UNFILT_INTR_SOURCE_LOW_G, intr_source_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_UNFILT_INTR_SOURCE_LOW_G_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
@@ -4505,8 +4548,7 @@ u8 intr_source_u8)
 			data_u8 = BMA2x2_SET_BITSLICE
 			(data_u8,
 			BMA2x2_UNFILT_INTR_SOURCE_HIGH_G, intr_source_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_UNFILT_INTR_SOURCE_HIGH_G_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
@@ -4518,8 +4560,7 @@ u8 intr_source_u8)
 			data_u8 = BMA2x2_SET_BITSLICE
 			(data_u8,
 			BMA2x2_UNFILT_INTR_SOURCE_SLOPE, intr_source_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_UNFILT_INTR_SOURCE_SLOPE_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
@@ -4532,8 +4573,7 @@ u8 intr_source_u8)
 			(data_u8,
 			BMA2x2_UNFILT_INTR_SOURCE_SLOW_NO_MOTION,
 			intr_source_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_UNFILT_INTR_SOURCE_SLOW_NO_MOTION_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
@@ -4545,8 +4585,7 @@ u8 intr_source_u8)
 			data_u8 = BMA2x2_SET_BITSLICE
 			(data_u8, BMA2x2_UNFILT_INTR_SOURCE_TAP,
 			intr_source_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_UNFILT_INTR_SOURCE_TAP_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
@@ -4558,8 +4597,7 @@ u8 intr_source_u8)
 			data_u8 = BMA2x2_SET_BITSLICE
 			(data_u8, BMA2x2_UNFILT_INTR_SOURCE_DATA,
 			intr_source_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_UNFILT_INTR_SOURCE_DATA_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
@@ -4679,8 +4717,7 @@ u8 intr_output_type_u8)
 			data_u8 = BMA2x2_SET_BITSLICE
 			(data_u8,
 			BMA2x2_INTR1_PAD_OUTPUT_TYPE, intr_output_type_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_INTR1_PAD_OUTPUT_TYPE_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
@@ -4692,8 +4729,7 @@ u8 intr_output_type_u8)
 			data_u8 = BMA2x2_SET_BITSLICE
 			(data_u8,
 			BMA2x2_INTR2_PAD_OUTPUT_TYPE, intr_output_type_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_INTR2_PAD_OUTPUT_TYPE_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
@@ -4811,8 +4847,7 @@ u8 intr_level_u8)
 			data_u8 = BMA2x2_SET_BITSLICE
 			(data_u8,
 			BMA2x2_INTR1_PAD_ACTIVE_LEVEL, intr_level_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_INTR1_PAD_ACTIVE_LEVEL_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
@@ -4824,8 +4859,7 @@ u8 intr_level_u8)
 			data_u8 = BMA2x2_SET_BITSLICE
 			(data_u8,
 			BMA2x2_INTR2_PAD_ACTIVE_LEVEL, intr_level_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_INTR2_PAD_ACTIVE_LEVEL_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
@@ -4871,8 +4905,7 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_rst_intr(u8 rst_intr_u8)
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 			data_u8 = BMA2x2_SET_BITSLICE
 			(data_u8, BMA2x2_RESET_INTR, rst_intr_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr, BMA2x2_RESET_INTR_REG,
+			com_rslt += bma2x2_write_reg(BMA2x2_RESET_INTR_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		}
 	return com_rslt;
@@ -5063,8 +5096,7 @@ if (p_bma2x2 == BMA2x2_NULL)  {
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 			data_u8 = BMA2x2_SET_BITSLICE
 			(data_u8, BMA2x2_LATCH_INTR, latch_durn_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr, BMA2x2_LATCH_INTR_REG,
+			com_rslt += bma2x2_write_reg(BMA2x2_LATCH_INTR_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		} else {
 		com_rslt = E_OUT_OF_RANGE;
@@ -5219,15 +5251,13 @@ u8 durn_u8)
 		case BMA2x2_LOW_DURN:
 			/*LOW DURATION*/
 			data_u8 = durn_u8;
-			com_rslt = p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr, BMA2x2_LOW_DURN_ADDR,
+			com_rslt = bma2x2_write_reg(BMA2x2_LOW_DURN_ADDR,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
 		case BMA2x2_HIGH_DURN:
 			/*HIGH DURATION*/
 			data_u8 = durn_u8;
-			com_rslt = p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt = bma2x2_write_reg(
 			BMA2x2_HIGH_DURN_ADDR,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
@@ -5239,8 +5269,7 @@ u8 durn_u8)
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 			data_u8 = BMA2x2_SET_BITSLICE
 			(data_u8, BMA2x2_SLOPE_DURN, durn_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_SLOPE_DURN_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
@@ -5252,8 +5281,7 @@ u8 durn_u8)
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 			data_u8 = BMA2x2_SET_BITSLICE
 			(data_u8, BMA2x2_SLOW_NO_MOTION_DURN, durn_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_SLOW_NO_MOTION_DURN_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
@@ -5453,32 +5481,28 @@ u8 thres_u8)
 		case BMA2x2_LOW_THRES:
 			/*LOW THRESHOLD*/
 			data_u8 = thres_u8;
-			com_rslt = p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt = bma2x2_write_reg(
 			BMA2x2_LOW_THRES_ADDR, &data_u8,
 			BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
 		case BMA2x2_HIGH_THRES:
 			/*HIGH THRESHOLD*/
 			data_u8 = thres_u8;
-			com_rslt = p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt = bma2x2_write_reg(
 			BMA2x2_HIGH_THRES_ADDR, &data_u8,
 			BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
 		case BMA2x2_SLOPE_THRES:
 			/*SLOPE THRESHOLD*/
 			data_u8 = thres_u8;
-			com_rslt = p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt = bma2x2_write_reg(
 			BMA2x2_SLOPE_THRES_ADDR, &data_u8,
 			BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
 		case BMA2x2_SLOW_NO_MOTION_THRES:
 			/*SLO NO MOT THRESHOLD*/
 			data_u8 = thres_u8;
-			com_rslt = p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt = bma2x2_write_reg(
 			BMA2x2_SLOW_NO_MOTION_THRES_ADDR,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
@@ -5610,8 +5634,7 @@ u8 hyst_u8)
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 			data_u8 = BMA2x2_SET_BITSLICE
 			(data_u8, BMA2x2_LOW_G_HYST, hyst_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_LOW_G_HYST_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
@@ -5622,8 +5645,7 @@ u8 hyst_u8)
 			BMA2x2_GEN_READ_WRITE_LENGTH);
 			data_u8 = BMA2x2_SET_BITSLICE
 			(data_u8, BMA2x2_HIGH_G_HYST, hyst_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_HIGH_G_HYST_REG,
 			&data_u8,  BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
@@ -5708,8 +5730,7 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_low_g_mode(u8 low_g_mode_u8)
 			BMA2x2_GEN_READ_WRITE_LENGTH);
 			data_u8 = BMA2x2_SET_BITSLICE
 			(data_u8, BMA2x2_LOW_G_INTR_MODE, low_g_mode_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_LOW_G_INTR_MODE_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		}
@@ -5804,8 +5825,7 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_tap_durn(u8 tap_durn_u8)
 			BMA2x2_GEN_READ_WRITE_LENGTH);
 			data_u8 = BMA2x2_SET_BITSLICE
 			(data_u8, BMA2x2_TAP_DURN, tap_durn_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_TAP_DURN_REG, &data_u8,
 			BMA2x2_GEN_READ_WRITE_LENGTH);
 		}
@@ -5888,8 +5908,7 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_tap_shock(u8 tap_shock_u8)
 			BMA2x2_GEN_READ_WRITE_LENGTH);
 			data_u8 = BMA2x2_SET_BITSLICE(data_u8,
 			BMA2x2_TAP_SHOCK_DURN, tap_shock_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_TAP_SHOCK_DURN_REG, &data_u8,
 			BMA2x2_GEN_READ_WRITE_LENGTH);
 		}
@@ -5970,8 +5989,7 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_tap_quiet(u8 tap_quiet_u8)
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 			data_u8 = BMA2x2_SET_BITSLICE(data_u8,
 			BMA2x2_TAP_QUIET_DURN, tap_quiet_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_TAP_QUIET_DURN_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		}
@@ -6060,8 +6078,7 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_tap_thres(u8 tap_thres_u8)
 			BMA2x2_GEN_READ_WRITE_LENGTH);
 			data_u8 = BMA2x2_SET_BITSLICE
 			(data_u8, BMA2x2_TAP_THRES, tap_thres_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_TAP_THRES_REG, &data_u8,
 			BMA2x2_GEN_READ_WRITE_LENGTH);
 		}
@@ -6147,8 +6164,7 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_tap_sample(u8 tap_sample_u8)
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 			data_u8 = BMA2x2_SET_BITSLICE
 			(data_u8, BMA2x2_TAP_SAMPLES, tap_sample_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_TAP_SAMPLES_REG, &data_u8,
 			BMA2x2_GEN_READ_WRITE_LENGTH);
 		}
@@ -6235,8 +6251,7 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_orient_mode(u8 orient_mode_u8)
 			BMA2x2_GEN_READ_WRITE_LENGTH);
 			data_u8 = BMA2x2_SET_BITSLICE(data_u8,
 			BMA2x2_ORIENT_MODE, orient_mode_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_ORIENT_MODE_REG, &data_u8,
 			BMA2x2_GEN_READ_WRITE_LENGTH);
 		}
@@ -6336,8 +6351,7 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_orient_block(u8 orient_block_u8)
 			BMA2x2_GEN_READ_WRITE_LENGTH);
 			data_u8 = BMA2x2_SET_BITSLICE
 			(data_u8, BMA2x2_ORIENT_BLOCK, orient_block_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_ORIENT_BLOCK_REG, &data_u8,
 			BMA2x2_GEN_READ_WRITE_LENGTH);
 		}
@@ -6414,8 +6428,7 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_orient_hyst(u8 orient_hyst_u8)
 			BMA2x2_GEN_READ_WRITE_LENGTH);
 			data_u8 = BMA2x2_SET_BITSLICE(data_u8,
 			BMA2x2_ORIENT_HYST, orient_hyst_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC(
-			p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_ORIENT_HYST_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		}
@@ -6529,16 +6542,14 @@ u8 theta_u8)
 			BMA2x2_GEN_READ_WRITE_LENGTH);
 			data_u8 = BMA2x2_SET_BITSLICE(data_u8,
 			BMA2x2_THETA_BLOCK, theta_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_THETA_BLOCK_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
 		case BMA2x2_FLAT_THETA:
 			/*FLAT THETA*/
 			data_u8 = theta_u8;
-			com_rslt = p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt = bma2x2_write_reg(
 			BMA2x2_THETA_FLAT_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
@@ -6624,8 +6635,7 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_orient_enable(u8 orient_enable_u8)
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 			data_u8 = BMA2x2_SET_BITSLICE(data_u8,
 			BMA2x2_ORIENT_UD_ENABLE, orient_enable_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_ORIENT_UD_ENABLE_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		}
@@ -6704,8 +6714,7 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_flat_hyst(u8 flat_hyst_u8)
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 			data_u8 = BMA2x2_SET_BITSLICE
 			(data_u8, BMA2x2_FLAT_HYST, flat_hyst_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_FLAT_HYST_REG, &data_u8,
 			BMA2x2_GEN_READ_WRITE_LENGTH);
 		}
@@ -6796,8 +6805,7 @@ u8 flat_hold_time_u8)
 			BMA2x2_GEN_READ_WRITE_LENGTH);
 			data_u8 = BMA2x2_SET_BITSLICE
 			(data_u8, BMA2x2_FLAT_HOLD_TIME, flat_hold_time_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_FLAT_HOLD_TIME_REG, &data_u8,
 			BMA2x2_GEN_READ_WRITE_LENGTH);
 		}
@@ -6863,6 +6871,7 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_fifo_wml_trig(
 u8 fifo_wml_trig)
 {
 	u8 data_u8 = BMA2x2_INIT_VALUE;
+	u8 power_mode = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
@@ -6880,10 +6889,12 @@ u8 fifo_wml_trig)
 			data_u8 = BMA2x2_SET_BITSLICE
 			(data_u8, BMA2x2_FIFO_WML_TRIG_RETAIN,
 			fifo_wml_trig);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_get_power_mode(&power_mode);
+			com_rslt += bma2x2_set_power_mode(BMA2x2_MODE_STANDBY);
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_FIFO_WML_TRIG_RETAIN_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			com_rslt += bma2x2_set_power_mode(power_mode);
 		} else {
 		com_rslt = E_OUT_OF_RANGE;
 		}
@@ -6974,8 +6985,7 @@ u8 selftest_axis_u8)
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 			data_u8 = BMA2x2_SET_BITSLICE
 			(data_u8, BMA2x2_ENABLE_SELFTEST, selftest_axis_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_ENABLE_SELFTEST_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		 } else {
@@ -7065,8 +7075,7 @@ u8 selftest_sign_u8)
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 			data_u8 = BMA2x2_SET_BITSLICE
 			(data_u8, BMA2x2_NEG_SELFTEST, selftest_sign_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_NEG_SELFTEST_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		} else {
@@ -7148,9 +7157,8 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_nvmprog_mode(u8 nvmprog_mode_u8)
 		&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		data_u8 = BMA2x2_SET_BITSLICE
 		(data_u8, BMA2x2_UNLOCK_EE_PROG_MODE, nvmprog_mode_u8);
-		com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-		(p_bma2x2->dev_addr,
-		BMA2x2_UNLOCK_EE_PROG_MODE_REG,
+		com_rslt += bma2x2_write_reg
+		(BMA2x2_UNLOCK_EE_PROG_MODE_REG,
 		&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 	}
 	return com_rslt;
@@ -7193,9 +7201,8 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_nvprog_trig(u8 nvprog_trig_u8)
 		&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		data_u8 = BMA2x2_SET_BITSLICE
 		(data_u8, BMA2x2_START_EE_PROG_TRIG, nvprog_trig_u8);
-		com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-		(p_bma2x2->dev_addr,
-		BMA2x2_START_EE_PROG_TRIG_REG,
+		com_rslt += bma2x2_write_reg
+		(BMA2x2_START_EE_PROG_TRIG_REG,
 		&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 	}
 	return com_rslt;
@@ -7358,8 +7365,7 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_spi3(u8 spi3_u8)
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 			data_u8 = BMA2x2_SET_BITSLICE
 			(data_u8, BMA2x2_ENABLE_SPI_MODE_3, spi3_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_ENABLE_SPI_MODE_3_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		}
@@ -7484,8 +7490,7 @@ u8 i2c_wdt_u8)
 			data_u8 = BMA2x2_SET_BITSLICE
 			(data_u8,
 			BMA2x2_I2C_WDT_PERIOD, i2c_wdt_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_I2C_WDT_PERIOD_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
@@ -7497,8 +7502,7 @@ u8 i2c_wdt_u8)
 			data_u8 = BMA2x2_SET_BITSLICE
 			(data_u8,
 			BMA2x2_ENABLE_I2C_WDT, i2c_wdt_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_ENABLE_I2C_WDT_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
@@ -7636,8 +7640,7 @@ u8 slow_comp_u8)
 			data_u8 = BMA2x2_SET_BITSLICE
 			(data_u8,
 			BMA2x2_ENABLE_SLOW_COMP_X, slow_comp_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_ENABLE_SLOW_COMP_X_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
@@ -7650,8 +7653,7 @@ u8 slow_comp_u8)
 			data_u8 = BMA2x2_SET_BITSLICE
 			(data_u8,
 			BMA2x2_ENABLE_SLOW_COMP_Y, slow_comp_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_ENABLE_SLOW_COMP_Y_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
@@ -7664,8 +7666,7 @@ u8 slow_comp_u8)
 			data_u8 = BMA2x2_SET_BITSLICE
 			(data_u8,
 			BMA2x2_ENABLE_SLOW_COMP_Z, slow_comp_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_ENABLE_SLOW_COMP_Z_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
@@ -7749,8 +7750,7 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_cal_trigger(u8 cal_trigger_u8)
 			BMA2x2_GEN_READ_WRITE_LENGTH);
 			data_u8 = BMA2x2_SET_BITSLICE(data_u8,
 			BMA2x2_CAL_TRIGGER, cal_trigger_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_CAL_TRIGGER_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		}
@@ -7791,8 +7791,7 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_offset_rst(u8 offset_rst_u8)
 			data_u8 = BMA2x2_SET_BITSLICE
 			(data_u8, BMA2x2_RST_OFFSET,
 			offset_rst_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_RST_OFFSET_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		}
@@ -7951,8 +7950,7 @@ u8 offset_u8)
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 			data_u8 = BMA2x2_SET_BITSLICE
 			(data_u8, BMA2x2_COMP_CUTOFF, offset_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_COMP_CUTOFF_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
@@ -7964,8 +7962,7 @@ u8 offset_u8)
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 			data_u8 = BMA2x2_SET_BITSLICE
 			(data_u8, BMA2x2_COMP_TARGET_OFFSET_X, offset_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_COMP_TARGET_OFFSET_X_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
@@ -7977,8 +7974,7 @@ u8 offset_u8)
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 			data_u8 = BMA2x2_SET_BITSLICE
 			(data_u8, BMA2x2_COMP_TARGET_OFFSET_Y, offset_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_COMP_TARGET_OFFSET_Y_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
@@ -7990,8 +7986,7 @@ u8 offset_u8)
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 			data_u8 = BMA2x2_SET_BITSLICE
 			(data_u8, BMA2x2_COMP_TARGET_OFFSET_Z, offset_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_COMP_TARGET_OFFSET_Z_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
@@ -8108,22 +8103,19 @@ s8 offset_u8)
 		switch (channel_u8) {
 		case BMA2x2_X_AXIS:
 			data_u8 = offset_u8;
-			com_rslt = p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt = bma2x2_write_reg(
 			BMA2x2_OFFSET_X_AXIS_ADDR, &data_u8,
 			BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
 		case BMA2x2_Y_AXIS:
 			data_u8 = offset_u8;
-			com_rslt = p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt = bma2x2_write_reg(
 			BMA2x2_OFFSET_Y_AXIS_ADDR, &data_u8,
 			BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
 		case BMA2x2_Z_AXIS:
 			data_u8 = offset_u8;
-			com_rslt = p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			com_rslt = bma2x2_write_reg(
 			BMA2x2_OFFSET_Z_AXIS_ADDR, &data_u8,
 			BMA2x2_GEN_READ_WRITE_LENGTH);
 		break;
@@ -8193,21 +8185,21 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_fifo_mode(u8 *fifo_mode_u8)
  *	@return results of bus communication function
  *	@retval 0 -> Success
  *	@retval -1 -> Error
- *
+ *	@retval -127 -> Null Pointer Error
  *
 */
 BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_fifo_mode(u8 fifo_mode_u8)
 {
 	u8 data_u8 = BMA2x2_INIT_VALUE;
+	u8 power_mode = BMA2x2_INIT_VALUE;
 		/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
-	u8 config_data_u8 = BMA2x2_INIT_VALUE;
 
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
-		return E_BMA2x2_NULL_PTR;
-		} else {
+		com_rslt = E_BMA2x2_NULL_PTR;
+	} else {
 		if (fifo_mode_u8 < BMA2x2_FIFO_MODE_RANGE) {
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
@@ -8215,19 +8207,23 @@ BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_fifo_mode(u8 fifo_mode_u8)
 			BMA2x2_GEN_READ_WRITE_LENGTH);
 			data_u8 = BMA2x2_SET_BITSLICE(data_u8,
 			BMA2x2_FIFO_MODE, fifo_mode_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
+			data_u8 |= 0x0C;
+			/*Power mode is switched to Standby power mode*/
+			com_rslt += bma2x2_get_power_mode(&power_mode);
+			com_rslt += bma2x2_set_power_mode(BMA2x2_MODE_STANDBY);
+			/*Configure the mode in FIFO_CONFIG registers*/
+			com_rslt += bma2x2_write_reg(
 			BMA2x2_FIFO_MODE_REG,
 			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
 			if (com_rslt == SUCCESS) {
-				com_rslt += bma2x2_read_reg(
-				BMA2x2_FIFO_MODE_REG,
-				&config_data_u8,
-				BMA2x2_GEN_READ_WRITE_LENGTH);
-				p_bma2x2->fifo_config = config_data_u8;
+				/*FIFO config is stored in struct p_bma2x2*/
+				p_bma2x2->fifo_config = data_u8;
 			}
+			/*Power mode is reverted to previously set mode */
+			com_rslt += bma2x2_set_power_mode(power_mode);
+
 		} else {
-		com_rslt = E_OUT_OF_RANGE;
+			com_rslt = E_OUT_OF_RANGE;
 		}
 	}
 	return com_rslt;
@@ -8280,7 +8276,7 @@ u8 *fifo_data_select_u8)
  *
  *
  *  @param fifo_data_select_u8 : The value of FIFO axis data select
- *   fifo_data_select_u8    |    result
+ *   fifo_data_select_u8      |    result
  *  ------------------------- |------------------
  *        0x00                |   XYZ
  *        0x01                |   Y
@@ -8292,22 +8288,22 @@ u8 *fifo_data_select_u8)
  *	@return results of bus communication function
  *	@retval 0 -> Success
  *	@retval -1 -> Error
- *
+ *	@retval -127 -> Null Pointer Error
  *
  */
 BMA2x2_RETURN_FUNCTION_TYPE bma2x2_set_fifo_data_select(
 u8 fifo_data_select_u8)
 {
 	u8 data_u8 = BMA2x2_INIT_VALUE;
+	u8 power_mode = BMA2x2_INIT_VALUE;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
-	u8 config_data_u8 = BMA2x2_INIT_VALUE;
 
 	if (p_bma2x2 == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
-		return E_BMA2x2_NULL_PTR;
-		} else {
+		com_rslt = E_BMA2x2_NULL_PTR;
+	} else {
 		if (fifo_data_select_u8 < BMA2x2_FIFO_DATA_SELECT_RANGE) {
 			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC
 			(p_bma2x2->dev_addr,
@@ -8316,59 +8312,325 @@ u8 fifo_data_select_u8)
 			data_u8 = BMA2x2_SET_BITSLICE
 			(data_u8,
 			BMA2x2_FIFO_DATA_SELECT, fifo_data_select_u8);
-			com_rslt += p_bma2x2->BMA2x2_BUS_WRITE_FUNC
-			(p_bma2x2->dev_addr,
-			BMA2x2_FIFO_DATA_SELECT_REG,
-			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			data_u8 |= 0x0C;
+			/*Power mode is switched to Standby power mode*/
+			com_rslt += bma2x2_get_power_mode(&power_mode);
+			com_rslt += bma2x2_set_power_mode(BMA2x2_MODE_STANDBY);
+			/* Configure appropriate (X,Y,Z) axes data to be
+			available in FIFO*/
+			com_rslt += bma2x2_write_reg(
+				BMA2x2_FIFO_DATA_SELECT_REG, &data_u8, 1);
 			if (com_rslt == SUCCESS) {
-				com_rslt += bma2x2_read_reg(
-				BMA2x2_FIFO_MODE_REG,
-				 &config_data_u8,
-				 BMA2x2_GEN_READ_WRITE_LENGTH);
-				p_bma2x2->fifo_config = config_data_u8;
+				/*FIFO config is stored in struct p_bma2x2*/
+				p_bma2x2->fifo_config = data_u8;
 			}
+			/*Power mode is reverted to previously set mode */
+			com_rslt += bma2x2_set_power_mode(power_mode);
 		} else {
-		com_rslt = E_OUT_OF_RANGE;
+			com_rslt = E_OUT_OF_RANGE;
 		}
 	}
 	return com_rslt;
 }
+
 /*!
- *	@brief This API is used to get
- *	the fifo data in the register 0x3F bit 0 to 7
+ *  @brief This API reads the FIFO data from the register 0x3F
+ *  and store the data in the user defined buffer mapped to the member
+ *  of structure "fifo_configuration"
  *
+ *  @note Before calling this API user must map the following FIFO settings
+ *  required to read the FIFO data to the structure "fifo_configuration"
+ *    - Data buffer to store the FIFO data is mapped to
+ *      the structure member "fifo_data"
+ *    - Number of bytes to be read from FIFO is mapped to
+ *      the structure member "fifo_length"
  *
- *  @param  output_reg_u8 : The value of fifo data
+ *  @note The number of bytes to be read from the FIFO is specified in the
+ *  member "fifo_length" of the structure "fifo_configuration"
  *
+ *  @param[in,out] fifo_conf : Structure containing the FIFO configurations
+ *  is passed as input and FIFO data of specified length is obtained as output
  *
+ *  @return results of bus communication function
+ *  @retval 0 -> Success
+ *  @retval -1 -> Error
+ *  @retval -127 -> Null Pointer Error
  *
- *	@return results of bus communication function
- *	@retval 0 -> Success
- *	@retval -1 -> Error
- *
- *
-*/
-BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_fifo_data_output_reg(
-u8 *output_reg_u8)
+ */
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_read_fifo_data(
+				struct fifo_configuration *fifo_conf)
 {
-	u8 data_u8 = BMA2x2_INIT_VALUE;
+	u8 fifo_frame_count = 0;
+	u8 fifo_data_bytes = 0;
+	u8 fifo_data_select = 0;
 	/*  Variable used to return value of
 	communication routine*/
 	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
 
-	if (p_bma2x2 == BMA2x2_NULL) {
+	if (p_bma2x2 == BMA2x2_NULL || fifo_conf->fifo_data == BMA2x2_NULL) {
 		/* Check the struct p_bma2x2 is empty */
-		return E_BMA2x2_NULL_PTR;
+		com_rslt = E_BMA2x2_NULL_PTR;
+	} else {
+		/*Resetting the FIFO data byte index*/
+		fifo_conf->accel_byte_start_index = 0;
+		/*Frames in FIFO is stored */
+		com_rslt = bma2x2_get_fifo_frame_count(&fifo_frame_count);
+		/*FIFO data select value is stored*/
+		com_rslt += bma2x2_get_fifo_data_select(&fifo_data_select);
+		/*Number of bytes in FIFO is calculated*/
+		if (fifo_data_select == BMA2x2_FIFO_XYZ_DATA_ENABLED) {
+			/*Number of bytes in FIFO when XYZ data are enabled*/
+			fifo_data_bytes = fifo_frame_count *
+					BMA2x2_FIFO_XYZ_AXES_FRAME_SIZE;
 		} else {
-			/*GET FIFO DATA OUTPUT REGISTER*/
-			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC(
-			p_bma2x2->dev_addr,
-			BMA2x2_FIFO_DATA_OUTPUT_ADDR,
-			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
-			*output_reg_u8 = data_u8;
+			/*No of bytes in FIFO when single axis data enabled*/
+			fifo_data_bytes = fifo_frame_count *
+					BMA2x2_FIFO_SINGLE_AXIS_FRAME_SIZE;
 		}
+		/*Handled the case where user requests to read more FIFO
+		length than available FIFO data*/
+		if (fifo_conf->fifo_length > fifo_data_bytes) {
+			/*Number of bytes in FIFO is read entirely when user
+			reads more FIFO data than available*/
+			fifo_conf->fifo_length = fifo_data_bytes;
+		}
+		/*Read the FIFO data*/
+		com_rslt += p_bma2x2->BMA2x2_BUS_READ_FUNC(p_bma2x2->dev_addr,
+			BMA2x2_FIFO_DATA_OUTPUT_ADDR, fifo_conf->fifo_data,
+			fifo_conf->fifo_length);
+	}
 	return com_rslt;
 }
+
+/*!
+ *  @brief This API extracts the accel data from the FIFO frames
+ *
+ *  @note The bma2x2_extract_accel() API should be called only after reading
+ *  the FIFO data by calling the bma2x2_read_fifo_data() API
+ *
+ *  @param[in,out] accel_frame      : Instance of the union where accel data
+ *                                    in FIFO is parsed and stored
+ *
+ *  @param[in,out] accel_frame_count: Number of Accel frames requested by user
+ *                                    is got as input and number of
+ *                                    accel frames parsed and stored is
+ *                                    returned as output to user
+ *
+ *  @param[in, out] fifo_conf       : FIFO configuration structure.
+ *                                    It provides the following as input
+ *                                        - user defined buffer
+ *                                        - length of FIFO data read
+ *                                    It returns the accel_byte_start_index
+ *                                    (index of accel bytes parsed from FIFO)
+ *
+ *  @return results of API execution status
+ *  @retval 0 -> Success
+ *  @retval -127 -> Error
+ *
+ */
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_extract_accel(union fifo_frame *accel_frame,
+	u8 *accel_frame_count, struct fifo_configuration *fifo_conf)
+{
+	u8 data_index = 0;
+	u8 accel_index = 0;
+	u8 data_read_length = 0;
+	u8 fifo_data_select = 0;
+	/*  Variable used to return value of communication routine*/
+	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = 0;
+
+	if (p_bma2x2 == BMA2x2_NULL || fifo_conf->fifo_data == BMA2x2_NULL) {
+		/* Check the struct p_bma2x2 is empty and FIFO data buffer
+		not being mapped to  fifo_configuration structure */
+		com_rslt = E_BMA2x2_NULL_PTR;
+	} else {
+		/* FIFO data enable value is stored in fifo_data_select*/
+		fifo_data_select = p_bma2x2->fifo_config &
+						BMA2x2_FIFO_DATA_ENABLED_MASK;
+		/* FIFO bytes available for parsing is obtained in
+		data_read_length*/
+		get_accel_len_to_parse(&data_index, &data_read_length,
+			*accel_frame_count, fifo_data_select, fifo_conf);
+		/*Parse the FIFO data from accel byte start index to
+		data_read_length*/
+		for (; data_index < data_read_length; ) {
+			unpack_accel_frame(accel_frame, &data_index,
+				&accel_index, fifo_data_select, fifo_conf);
+		}
+		/* update number of accel data read*/
+		*accel_frame_count = accel_index;
+		/*update the accel byte index*/
+		fifo_conf->accel_byte_start_index = data_index;
+	}
+	return com_rslt;
+}
+
+/*!
+ *  @brief This API computes the number of bytes of accel FIFO data
+ *  which is to be parsed.
+ */
+static void get_accel_len_to_parse(u8 *data_index, u8 *data_read_length,
+	u8 accel_frame_count, u8 fifo_data_select,
+	struct fifo_configuration *fifo_conf)
+{
+	/*Current data index is set to accel_byte_start_index*/
+	*data_index = fifo_conf->accel_byte_start_index;
+	/* FIFO bytes corresponding to the requested FIFO frames is obtained*/
+	if (fifo_data_select == BMA2x2_FIFO_XYZ_DATA_ENABLED) {
+		/*Number of bytes in FIFO when XYZ data are enabled*/
+		*data_read_length = accel_frame_count *
+					BMA2x2_FIFO_XYZ_AXES_FRAME_SIZE;
+	} else {
+		/*No of bytes in FIFO when single axis data enabled*/
+		*data_read_length = accel_frame_count *
+					BMA2x2_FIFO_SINGLE_AXIS_FRAME_SIZE;
+	}
+	if ((*data_read_length) > fifo_conf->fifo_length) {
+		/*Handling the case where more FIFO frame is requested
+		than available*/
+		*data_read_length = fifo_conf->fifo_length;
+	}
+}
+
+/*!
+ *  @brief This API is used to parse the accelerometer frame from the
+ *  user defined FIFO data buffer mapped to the structure fifo_conf and store
+ *  it in the union fifo_frame
+ *
+ *  @note It update the data_index value which is used to store the index of
+ *  the current data byte which is parsed.
+ *
+ *  @note The parsed accel frames stored in the union fifo_conf contains data
+ *  in accordance with the enabled data axes to be stored in FIFO
+ *  (XYZ axes or individual axis)
+ */
+static void unpack_accel_frame(union fifo_frame *accel_frame, u8 *data_index,
+	u8 *accel_index, u8 fifo_data_select,
+	struct fifo_configuration *fifo_conf)
+{
+	u16 data_lsb = 0;
+	u16 data_msb = 0;
+
+	switch (fifo_data_select) {
+
+	case BMA2x2_FIFO_XYZ_DATA_ENABLED:
+		unpack_accel_xyz(&accel_frame[*accel_index], data_index,
+								fifo_conf);
+		/* Accel index is updated*/
+		(*accel_index)++;
+	break;
+
+	case BMA2x2_FIFO_X_DATA_ENABLED:
+		/* Accel raw x data */
+		data_lsb = fifo_conf->fifo_data[(*data_index)++];
+		data_msb = fifo_conf->fifo_data[(*data_index)++];
+		accel_frame[*accel_index].x = (u16)((data_msb << 8) | data_lsb);
+
+		/* Resolution based data from FIFO is updated */
+		if (V_BMA2x2RESOLUTION_U8 == BMA2x2_12_RESOLUTION) {
+			accel_frame[*accel_index].x =
+					(accel_frame[*accel_index].x >> 4);
+		} else if (V_BMA2x2RESOLUTION_U8 == BMA2x2_14_RESOLUTION) {
+			accel_frame[*accel_index].x =
+					(accel_frame[*accel_index].x >> 2);
+		} else if (V_BMA2x2RESOLUTION_U8 == BMA2x2_10_RESOLUTION) {
+			accel_frame[*accel_index].x =
+					(accel_frame[*accel_index].x >> 6);
+		}
+		/* Accel index is updated*/
+		(*accel_index)++;
+	break;
+
+	case BMA2x2_FIFO_Y_DATA_ENABLED:
+		/* Accel raw y data */
+		data_lsb = fifo_conf->fifo_data[(*data_index)++];
+		data_msb = fifo_conf->fifo_data[(*data_index)++];
+		accel_frame[*accel_index].y = (u16)((data_msb << 8) | data_lsb);
+
+		/* Resolution based data from FIFO is updated */
+		if (V_BMA2x2RESOLUTION_U8 == BMA2x2_12_RESOLUTION) {
+			accel_frame[*accel_index].y =
+					(accel_frame[*accel_index].y >> 4);
+		} else if (V_BMA2x2RESOLUTION_U8 == BMA2x2_14_RESOLUTION) {
+			accel_frame[*accel_index].y =
+					(accel_frame[*accel_index].y >> 2);
+		} else if (V_BMA2x2RESOLUTION_U8 == BMA2x2_10_RESOLUTION) {
+			accel_frame[*accel_index].y =
+					(accel_frame[*accel_index].y >> 6);
+		}
+		/* Accel index is updated*/
+		(*accel_index)++;
+	break;
+
+	case BMA2x2_FIFO_Z_DATA_ENABLED:
+		/* Accel raw z data */
+		data_lsb = fifo_conf->fifo_data[(*data_index)++];
+		data_msb = fifo_conf->fifo_data[(*data_index)++];
+		accel_frame[*accel_index].z = (u16)((data_msb << 8) | data_lsb);
+
+		/* Resolution based data from FIFO is updated */
+		if (V_BMA2x2RESOLUTION_U8 == BMA2x2_12_RESOLUTION) {
+			accel_frame[*accel_index].z =
+					(accel_frame[*accel_index].z >> 4);
+		} else if (V_BMA2x2RESOLUTION_U8 == BMA2x2_14_RESOLUTION) {
+			accel_frame[*accel_index].z =
+					(accel_frame[*accel_index].z >> 2);
+		} else if (V_BMA2x2RESOLUTION_U8 == BMA2x2_10_RESOLUTION) {
+			accel_frame[*accel_index].z =
+					(accel_frame[*accel_index].z >> 6);
+		}
+		/* Accel index is updated*/
+		(*accel_index)++;
+	break;
+
+	default:
+	break;
+	}
+}
+
+/*!
+ *  @brief This API is used to parse the accelerometer data and
+ *  store it in the union fifo_frame
+ *  It also updates the data_index value which stores the index of
+ *  the current data byte which is parsed
+ *
+ */
+static void unpack_accel_xyz(union fifo_frame *accel_frame, u8 *data_index,
+	struct fifo_configuration *fifo_conf)
+{
+	u16 data_lsb = 0;
+	u16 data_msb = 0;
+
+	/* Accel raw x data */
+	data_lsb = fifo_conf->fifo_data[(*data_index)++];
+	data_msb = fifo_conf->fifo_data[(*data_index)++];
+	accel_frame->accel_data.x = (u16)((data_msb << 8) | data_lsb);
+
+	/* Accel raw y data */
+	data_lsb = fifo_conf->fifo_data[(*data_index)++];
+	data_msb = fifo_conf->fifo_data[(*data_index)++];
+	accel_frame->accel_data.y = (u16)((data_msb << 8) | data_lsb);
+
+	/* Accel raw z data */
+	data_lsb = fifo_conf->fifo_data[(*data_index)++];
+	data_msb = fifo_conf->fifo_data[(*data_index)++];
+	accel_frame->accel_data.z = (u16)((data_msb << 8) | data_lsb);
+
+	/* Resolution based data from FIFO is updated */
+	if (V_BMA2x2RESOLUTION_U8 == BMA2x2_12_RESOLUTION) {
+		accel_frame->accel_data.x = (accel_frame->accel_data.x >> 4);
+		accel_frame->accel_data.y = (accel_frame->accel_data.y >> 4);
+		accel_frame->accel_data.z = (accel_frame->accel_data.z >> 4);
+	} else if (V_BMA2x2RESOLUTION_U8 == BMA2x2_14_RESOLUTION) {
+		accel_frame->accel_data.x = (accel_frame->accel_data.x >> 2);
+		accel_frame->accel_data.y = (accel_frame->accel_data.y >> 2);
+		accel_frame->accel_data.z = (accel_frame->accel_data.z >> 2);
+	} else if (V_BMA2x2RESOLUTION_U8 == BMA2x2_10_RESOLUTION) {
+		accel_frame->accel_data.x = (accel_frame->accel_data.x >> 6);
+		accel_frame->accel_data.y = (accel_frame->accel_data.y >> 6);
+		accel_frame->accel_data.z = (accel_frame->accel_data.z >> 6);
+	}
+}
+
 /*!
  * @brief This API is used to read the temp
  * from register 0x08
@@ -8589,6 +8851,46 @@ struct bma2x2_accel_eight_resolution_temp *accel)
 			p_bma2x2->dev_addr, BMA2x2_TEMP_ADDR, &data_u8,
 			BMA2x2_GEN_READ_WRITE_LENGTH);
 			accel->temp = (s8)data_u8;
+		}
+	return com_rslt;
+}
+
+/*!
+ *	@brief This API is used to get
+ *	the fifo data in the register 0x3F bit 0 to 7
+ *
+ *
+ *  @param  output_reg_u8 : The value of fifo data
+ *
+ *
+ *
+ *	@return results of bus communication function
+ *	@retval 0 -> Success
+ *	@retval -1 -> Error
+ *
+ *
+*/
+BMA2x2_RETURN_FUNCTION_TYPE bma2x2_get_fifo_data_output_reg(
+u8 *output_reg_u8)
+{
+	#warning This API is deprecated ,Instead use the \
+	"bma2x2_read_fifo_data" API for reading FIFO data
+
+	u8 data_u8 = BMA2x2_INIT_VALUE;
+	/*Variable used to return value of
+	communication routine*/
+	BMA2x2_RETURN_FUNCTION_TYPE com_rslt = ERROR;
+
+	if (p_bma2x2 == BMA2x2_NULL) {
+		/* Check the struct p_bma2x2 is empty */
+		return E_BMA2x2_NULL_PTR;
+		} else {
+			/*GET FIFO DATA OUTPUT REGISTER*/
+			com_rslt = p_bma2x2->BMA2x2_BUS_READ_FUNC(
+			p_bma2x2->dev_addr,
+			BMA2x2_FIFO_DATA_OUTPUT_ADDR,
+			&data_u8, BMA2x2_GEN_READ_WRITE_LENGTH);
+			*output_reg_u8 = data_u8;
 		}
 	return com_rslt;
 }
